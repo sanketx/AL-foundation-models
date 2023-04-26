@@ -1,3 +1,11 @@
+# Manual additions
+ALFM/cache
+ALFM/checkpoints
+ALFM/logs
+
+*.npy
+*.hdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
