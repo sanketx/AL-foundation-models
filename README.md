@@ -10,3 +10,5 @@ git clone git@github.com:sanketx/AL-foundation-models.git
 cd Al-foundation-models
 conda develop .
 ```
+
+Make a copy of `ALFM/.env.example` and name it `ALFM/.env`. Change the paths in it to reflect your local setup
