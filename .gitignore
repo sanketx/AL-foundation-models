@@ -1,7 +1,11 @@
 # Manual additions
-ALFM/cache
-ALFM/checkpoints
-ALFM/logs
+ALFM/cache/*
+ALFM/checkpoints/*
+ALFM/logs/*
+
+!ALFM/cache/.gitkeep
+!ALFM/checkpoints/.gitkeep
+!ALFM/logs/.gitkeep
 
 *.npy
 *.hdf
