@@ -1,0 +1,13 @@
+# temporarily disable logging
+hydra:
+  output_subdir: null
+  job:
+    chdir: false
+
+experiment_cfg:
+  dataset: cifar100
+
+dataset_cfg:
+  _target_: "ALFM.DatasetType.${experiment_cfg.dataset}.value"
+  root: ${oc.env:DATASETS_DIR}
+  download: true
