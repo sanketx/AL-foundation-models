@@ -4,11 +4,11 @@ import os
 from typing import Any
 from typing import Callable
 from typing import List
+from typing import Tuple
 from typing import cast
 
 import h5py
 import numpy as np
-import numpy.typing as npt
 import pytorch_lightning as pl
 import torch
 from ALFM import DatasetType
@@ -16,6 +16,7 @@ from ALFM import ModelType
 from ALFM.src.datasets.factory import create_dataset
 from ALFM.src.models.backbone_wrapper import BackboneWrapper
 from ALFM.src.models.factory import create_model
+from numpy.typing import NDArray
 from torch.utils.data import DataLoader
 
 
@@ -39,18 +40,23 @@ def check_existing_features(vector_file: str, split: str) -> bool:
     return False
 
 
-def save_features(
-    features: npt.NDArray[np.float32 | np.float16], vector_file: str, split: str
+def save_vectors(
+    features: NDArray[np.float32 | np.float16],
+    labels: NDArray[np.int64],
+    vector_file: str,
+    split: str,
 ) -> None:
     """Save the extracted features to an HDF file.
 
     Args:
-        features (npt.NDArray[np.float32 | np.float16]): Extracted features as a NumPy array.
+        features (NDArray[np.float32 | np.float16]): Extracted features as a NumPy array.
+        labels (NDArray[np.int64]): Image labels as a NumPy array.
         vector_file (str): Path to the HDF file to save the features.
         split (str): Split name, either 'train' or 'test'.
     """
     with h5py.File(vector_file, "a") as fh:
-        fh.create_dataset(split, data=features)
+        fh.create_dataset(f"{split}/features", data=features)
+        fh.create_dataset(f"{split}/labels", data=labels)
 
 
 def extract_features(
@@ -88,14 +94,15 @@ def extract_features(
     if check_existing_features(vector_file, split):
         print(
             f"{split} features have already been computed for the {dataset_type.name}"
-            + " dataset with the {model_type.name} model"
+            + f" dataset with the {model_type.name} model"
         )
         return  # skip feature extraction
 
     model = BackboneWrapper(model)
-    feature_list = trainer.predict(model, dataloader(dataset))
-    feature_list = cast(List[npt.NDArray[np.float32 | np.float16]], feature_list)
-    features = np.concatenate(feature_list)
+    preds = trainer.predict(model, dataloader(dataset))
 
-    print(features.shape, features.dtype)
-    save_features(features, vector_file, split)
+    feature_list, label_list = zip(*preds)  # type: ignore[misc]
+    features = np.concatenate(feature_list)
+    labels = np.concatenate(label_list)
+
+    save_vectors(features, labels, vector_file, split)
