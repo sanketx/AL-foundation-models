@@ -1,4 +1,4 @@
-model: dino_vit_S14  # ${models.model}
+model: dino_vit_S14
 dataset: cifar10
 split: "both"  # "train" | "test" | "both"
 
