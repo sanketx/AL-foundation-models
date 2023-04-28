@@ -1,13 +1,50 @@
-# temporarily disable logging
+model: dino_vit_S14  # ${models.model}
+dataset: cifar10
+split: "both"  # "train" | "test" | "both"
+
+
+dataloader:
+  batch_size: 512
+  num_workers: 16
+  shuffle: false
+
+  # params for hydra.utils.instantiate
+  _target_: torch.utils.data.DataLoader
+  _partial_: true
+
+
+trainer:
+  precision: "16-mixed"
+
+  # params for hydra.utils.instantiate
+  _target_: pytorch_lightning.Trainer
+  devices: 1
+  logger: false
+
+
+# sweep over combinations of datasets and models
 hydra:
-  output_subdir: null
+  mode: MULTIRUN
+  sweeper:
+    params:
+      dataset: 
+        cifar10,
+        cifar100
+      model:
+        openclip_vit_B16,
+        openclip_vit_L14,
+        openclip_vit_H14,
+        openclip_vit_g14,
+        openclip_vit_G14,
+        \
+        dino_vit_S14,        
+        dino_vit_B14,
+        dino_vit_L14,
+        dino_vit_g14
+
+  # temporarily disable logging
+  run:
+    dir: ""
   job:
     chdir: false
-
-experiment_cfg:
-  dataset: cifar100
-
-dataset_cfg:
-  _target_: "ALFM.DatasetType.${experiment_cfg.dataset}.value"
-  root: ${oc.env:DATASETS_DIR}
-  download: true
+  output_subdir: null
