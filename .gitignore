@@ -1,4 +1,7 @@
 # Manual additions
+multirun
+lightning_logs
+
 ALFM/cache/*
 ALFM/checkpoints/*
 ALFM/logs/*
