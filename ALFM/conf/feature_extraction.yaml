@@ -1,5 +1,9 @@
-model: ${hydra.choice}
-dataset: ${hydra.choice}
+defaults:
+  - _self_
+  - dataset: cifar10
+  - model: dino_vit_S14
+
+
 split: "both"  # "train" | "test" | "both"
 
 
