@@ -1,5 +1,5 @@
-model: dino_vit_S14
-dataset: cifar10
+model: ${hydra.choice}
+dataset: ${hydra.choice}
 split: "both"  # "train" | "test" | "both"
 
 
@@ -36,7 +36,6 @@ hydra:
         openclip_vit_H14,
         openclip_vit_g14,
         openclip_vit_G14,
-        \
         dino_vit_S14,        
         dino_vit_B14,
         dino_vit_L14,
