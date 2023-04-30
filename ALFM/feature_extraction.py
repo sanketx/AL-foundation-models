@@ -34,15 +34,8 @@ def main(cfg: DictConfig) -> None:
         AssertionError: If any of the 'DATASET_DIR', 'MODEL_CACHE_DIR', or
         'FEATURE_CACHE_DIR' environment variables are not set.
     """
-    # Check if dataset_type and model_type are valid Enum variants
-    if not (hasattr(DatasetType, cfg.dataset)):
-        raise ValueError(f"Invalid dataset: '{cfg.dataset}'")
-
-    if not (hasattr(ModelType, cfg.model)):
-        raise ValueError(f"Invalid model: '{cfg.model}'")
-
-    dataset_type = DatasetType[cfg.dataset]
-    model_type = ModelType[cfg.model]
+    dataset_type = DatasetType[cfg.dataset.name]
+    model_type = ModelType[cfg.model.name]
     dataloader = hydra.utils.instantiate(cfg.dataloader)
 
     env = dotenv_values()
