@@ -23,3 +23,6 @@ module = [
     "torchvision.datasets"
 ]
 ignore_missing_imports = true
+
+[tool.pyright]
+reportGeneralTypeIssues = false
