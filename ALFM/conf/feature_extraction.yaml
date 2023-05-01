@@ -8,7 +8,7 @@ split: "both"  # "train" | "test" | "both"
 
 
 dataloader:
-  batch_size: 512
+  batch_size: 64
   num_workers: 16
   shuffle: false
 
