@@ -78,11 +78,6 @@ def extract_features(
         dataloader (Callable[..., DataLoader[Any]]): Callable to create DataLoader for the dataset.
         trainer (pl.Trainer): PyTorch Lightning Trainer for feature extraction.
     """
-    model, transform = create_model(model_type, cache_dir=model_dir)
-    dataset = create_dataset(
-        dataset_type, root=dataset_dir, train=train, transform=transform
-    )
-
     split = "train" if train else "test"
     dst_dir = os.path.join(feature_dir, f"{dataset_type.name}")
     vector_file = os.path.join(dst_dir, f"{model_type.name}.hdf")
@@ -94,6 +89,11 @@ def extract_features(
             + f" dataset with the {model_type.name} model"
         )
         return  # skip feature extraction
+
+    model, transform = create_model(model_type, cache_dir=model_dir)
+    dataset = create_dataset(
+        dataset_type, root=dataset_dir, train=train, transform=transform
+    )
 
     model = BackboneWrapper(model)
     preds = trainer.predict(model, dataloader(dataset))
