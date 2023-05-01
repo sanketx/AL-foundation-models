@@ -39,7 +39,7 @@ class ClassifierWrapper:
     ) -> None:
         dataset = ALDataset(train_x, train_y, labeled_pool)
         self.trainer = instantiate(self.trainer_cfg)
-        self.trainer.fit(self.classifier, self.dataloader(dataset))
+        self.trainer.fit(self.classifier, self.dataloader(dataset, shuffle=True))
 
     def eval(
         self,
