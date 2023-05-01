@@ -1,0 +1,4 @@
+name: residual_adapter
+params:
+  scale: 4
+  init_alpha: -2.0
