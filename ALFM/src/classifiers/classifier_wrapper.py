@@ -1,5 +1,4 @@
 """Wrapper class for classifiers to faciliate Active Learning."""
-import logging
 import warnings
 from typing import Dict
 
@@ -14,7 +13,6 @@ from omegaconf import DictConfig
 
 
 warnings.simplefilter("ignore")
-logging.getLogger("pytorch_lightning").setLevel(logging.CRITICAL)
 torch.set_float32_matmul_precision("medium")  # type: ignore[no-untyped-call]
 
 
