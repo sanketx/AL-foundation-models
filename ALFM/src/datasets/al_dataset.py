@@ -1,6 +1,7 @@
 """Vector Dataset class used in ALFM experiments."""
 
 from typing import Any
+from typing import Optional
 from typing import Tuple
 
 import numpy as np
@@ -20,17 +21,21 @@ class ALDataset(Dataset[Any]):
         self,
         features: NDArray[np.float32],
         labels: NDArray[np.int64],
-        mask: NDArray[np.bool_],
+        mask: Optional[NDArray[np.bool_]] = None,
     ) -> None:
         """Creates a dataset instance from the provided features, labels, and mask.
 
         Args:
             features (NDArray[np.float32]): A NumPy array of feature vectors.
             labels (NDArray[np.int64]): A NumPy array of corresponding labels.
-            mask (NDArray[np.bool_]): A NumPy boolean array used to filter the data points .
+            mask (Optional[NDArray[np.bool_]]): A NumPy boolean array used to filter the data points .
         """
         self.features = features
         self.labels = labels
+
+        if mask is None:
+            mask = np.ones(len(self.features), dtype=bool)
+
         self.indices = np.flatnonzero(mask)
 
     def __len__(self) -> int:
