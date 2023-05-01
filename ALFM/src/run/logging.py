@@ -12,5 +12,5 @@ logging.basicConfig(
     handlers=[RichHandler()],
 )
 
-
+logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
 logger = logging.getLogger("rich")
