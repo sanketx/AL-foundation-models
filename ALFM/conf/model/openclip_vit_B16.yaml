@@ -1,1 +1,2 @@
 name: openclip_vit_B16
+num_features: 512
