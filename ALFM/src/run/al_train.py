@@ -7,8 +7,8 @@ import torch
 from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
 from ALFM.src.init_strategies.registry import InitType
 from ALFM.src.query_strategies.registry import QueryType
-from ALFM.src.run.utils import print_composition
-from ALFM.src.run.utils import print_scores
+from ALFM.src.run.utils import log_composition
+from ALFM.src.run.utils import log_scores
 from numpy.typing import NDArray
 from omegaconf import DictConfig
 
@@ -65,22 +65,21 @@ def al_train(vector_file: str, cfg: DictConfig) -> None:
     query_strategy = QueryType[cfg.query_strategy.name]
     sampler = query_strategy.value(**cfg.query_strategy.params)
 
-    # create a model from the classifier
-    model = ClassifierWrapper(cfg)
-
     for i, iteration in enumerate(iterations, 1):
-        print_composition(train_x, train_y, labeled_pool)
+        log_composition(train_x, train_y, labeled_pool)
 
+        model = ClassifierWrapper(cfg)
         model.fit(train_x, train_y, labeled_pool)
         scores = model.eval(test_x, test_y)
 
-        print_scores(scores, i, len(iterations), budget)
+        log_scores(scores, i, len(iterations), budget)
 
         if i == len(iterations):
             return  # no need to run the query for the last iteration
 
-        sampler.update_state(iteration, train_x, train_y, labeled_pool, None)
+        sampler.update_state(iteration, train_x, train_y, labeled_pool, model)
 
+        # compute how many new samples to query
         budget = (iterations[i] - iterations[i - 1]) * num_classes * cfg.budget.step
         labeled_pool |= sampler.query(budget)  # update labeled pool
 
