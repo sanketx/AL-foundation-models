@@ -1,0 +1,83 @@
+defaults:
+  - _self_
+  - query_strategy: random
+  - init_strategy: random_init
+  - model: dino_vit_B14
+  - dataset: cifar100
+  - classifier: linear_classifier
+  - hydra/job_logging: none
+
+
+# Active Learning experiment config
+iterations:
+  n: 5
+  exp: false  # whether to use exponentially increasing budgets
+
+budget: # query budget per class
+  init: 1  # intial query budget
+  step: 1  # query per iteration
+
+seed: 1
+
+# Classifier config
+classifier:
+  params:
+    dropout_p: 0.75
+    lr: 1e-2                 # cifar10: 1e-3, cifar100: 1e-2
+    weight_decay: 1e-2
+
+    metrics:
+      - _target_: torchmetrics.Accuracy
+        task: multiclass
+        num_classes: ${dataset.num_classes}
+        average: weighted
+
+      - _target_: torchmetrics.AUROC
+        task: multiclass
+        num_classes: ${dataset.num_classes}
+        average: weighted
+
+
+# Model training config 
+dataloader:
+  batch_size: 4096
+  num_workers: 16
+  shuffle: false
+
+  # params for hydra.utils.instantiate
+  _target_: torch.utils.data.DataLoader
+  _partial_: true
+
+trainer:
+  precision: "16-mixed"
+  max_epochs: 400
+
+  # params for hydra.utils.instantiate
+  _target_: pytorch_lightning.Trainer
+  devices: 1
+  logger: false
+  default_root_dir: /tmp/lightning
+  enable_model_summary: false
+
+  callbacks:
+    - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+      monitor: CELoss
+      save_on_train_epoch_end: true
+
+    - _target_: pytorch_lightning.callbacks.EarlyStopping
+      monitor: CELoss
+      patience: 20
+      min_delta: 1e-3
+      check_on_train_epoch_end: true
+
+    - _target_: pytorch_lightning.callbacks.RichProgressBar
+
+
+# Hydra config
+hydra:
+  # temporarily disable logging
+  run:
+    dir: ""
+  job:
+    chdir: false
+  output_subdir: null
