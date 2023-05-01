@@ -7,7 +7,7 @@ from ALFM.src.run.logging import logger
 from numpy.typing import NDArray
 
 
-def print_composition(
+def log_composition(
     features: NDArray[np.float32], labels: NDArray[np.int64], mask: NDArray[np.bool_]
 ) -> None:
     total_samples = len(features)
@@ -22,9 +22,9 @@ def print_composition(
     )
 
 
-def print_scores(scores: Dict[str, float], i: int, num_iter: int, budget: int) -> None:
+def log_scores(scores: Dict[str, float], i: int, num_iter: int, budget: int) -> None:
     logger.info(
         f"[{i}/{num_iter}] Budget: {budget} "
-        + f"| Acc: {scores['TEST_MulticlassAccuracy']:.3f}"
-        + f" | AUROC: {scores['TEST_MulticlassAUROC']:.3f}\n"
+        + f"| Acc: {scores['TEST_MulticlassAccuracy']:.4f}"
+        + f" | AUROC: {scores['TEST_MulticlassAUROC']:.4f}\n"
     )
