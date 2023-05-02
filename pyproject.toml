@@ -18,6 +18,7 @@ show_error_context = true
 [[tool.mypy.overrides]]
 module = [
     "h5py",
+    "faiss",
     "open_clip",
     "torchvision",
     "torchvision.datasets"
