@@ -63,7 +63,9 @@ def al_train(vector_file: str, cfg: DictConfig) -> None:
 
     # create the active learning query strategy
     query_strategy = QueryType[cfg.query_strategy.name]
-    sampler = query_strategy.value(**cfg.query_strategy.params)
+    sampler = query_strategy.value(
+        features=train_x, labels=train_y, **cfg.query_strategy.params
+    )
 
     for i, iteration in enumerate(iterations, 1):
         log_composition(train_x, train_y, labeled_pool)
@@ -77,10 +79,10 @@ def al_train(vector_file: str, cfg: DictConfig) -> None:
         if i == len(iterations):
             return  # no need to run the query for the last iteration
 
-        sampler.update_state(iteration, train_x, train_y, labeled_pool, model)
-
         # compute how many new samples to query
         budget = (iterations[i] - iterations[i - 1]) * num_classes * cfg.budget.step
+
+        sampler.update_state(iteration, labeled_pool, model)
         labeled_pool |= sampler.query(budget)  # update labeled pool
 
         # log everything
