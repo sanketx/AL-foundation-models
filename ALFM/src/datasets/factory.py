@@ -27,4 +27,4 @@ def create_dataset(
         VisionDataset: An instance of the dataset specified by the DatasetType enum value.
 
     """
-    return dataset_type.value(root, train=train, transform=transform)
+    return dataset_type.value(root, train=train, transform=transform, download=True)

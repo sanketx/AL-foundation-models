@@ -33,7 +33,8 @@ hydra:
     params:
       dataset: 
         cifar10,
-        cifar100
+        cifar100,
+        food101
       model:
         openclip_vit_B16,
         openclip_vit_L14,
