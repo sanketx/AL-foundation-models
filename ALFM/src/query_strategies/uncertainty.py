@@ -33,5 +33,5 @@ class Uncertainty(BaseQuery):
         softmax_probs = self.model.get_probs(self.features[unlabeled_indices])
         max_probs = np.max(softmax_probs, axis=1)
         indices = np.argsort(max_probs)[:num_samples]
-        mask[indices] = True
+        mask[unlabeled_indices[indices]] = True
         return mask
