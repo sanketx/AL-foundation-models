@@ -3,47 +3,27 @@
 
 import numpy as np
 from ALFM.src.query_strategies.base_query import BaseQuery
-from numpy.typing import NDArray
 from faiss import pairwise_distances
+from numpy.typing import NDArray
+from rich.progress import track
 
 
 class Coreset(BaseQuery):
-    """Selects diverse samples that cover the unlabeled feature space
+    """Coreset Active Learning query function.
+
+    Selects diverse samples that cover the unlabeled feature space
     according to the coreset algorithm as described in Sener and Savarese,
     "Active Learning for Convolutional Neural Networks: A Core-Set Approach"
-    (https://arxiv.org/abs/1708.00489). 
-    
+    (https://arxiv.org/abs/1708.00489).
+
     We implement the greedy approach, which performs comparably to the more
-    involved mixed-integer programming approach. Adapted from 
+    involved mixed-integer programming approach. Adapted from
     https://github.com/google/active-learning/blob/master/sampling_methods/kcenter_greedy.py.
     """
 
     def __init__(self) -> None:
         """Call the superclass constructor."""
         super().__init__()
-
-    def update_distances(self, cluster_centers, only_new=True, reset_dist=False):
-        """Update min distances given cluster centers.
-        
-        Args:
-            cluster_centers: indices of cluster centers
-            only_new: only calculate distance for newly selected points and
-                      update min_distances.
-            rest_dist: whether to reset min_distances.
-        """
-        if reset_dist:
-            self.min_distances = None
-        if only_new:
-            cluster_centers = [d for d in cluster_centers
-                               if d not in np.flatnonzero(self.labeled_pool)]
-        if cluster_centers:
-            x = self.features[cluster_centers]
-            dist = pairwise_distances(self.features, x)
-
-        if self.min_distances is None:
-            self.min_distances = np.min(dist, axis=1).reshape(-1, 1)
-        else:
-            self.min_distances = np.minimum(self.min_distances, dist)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -55,36 +35,29 @@ class Coreset(BaseQuery):
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
         mask = np.zeros(len(self.features), dtype=bool)
-        labeled_indices = np.flatnonzero(self.labeled_pool)
-        unlabeled_indices = np.flatnonzero(~self.labeled_pool)
+        labeled_features = self.features[self.labeled_pool]
+        unlabeled_features = self.features[~self.labeled_pool]
 
-        if num_samples > len(unlabeled_indices):
+        if num_samples > len(unlabeled_features):
             raise ValueError(
-                f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
+                f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_features)})"
             )
 
-        try:
-            self.update_distances(labeled_indices, only_new=False, reset_dist=True)
-        except Exception:
-            self.update_distances(labeled_indices, only_new=True, reset_dist=False)
+        p_dist = pairwise_distances(labeled_features, unlabeled_features)
+        min_dist = p_dist.min(axis=0)  # distance of each UL point to the nearest center
 
         new_batch = []
-        for _ in range(num_samples):
-            if self.already_selected is None:
-                # Initialize centers with a randomly selected datapoint
-                ind = np.random.choice(np.arange(self.n_obs))
-            else:
-                ind = np.argmax(self.min_distances)
 
-            # New examples should not be in already selected since those points
-            # should have min_distance of zero to a cluster center.
-            assert ind not in labeled_indices
+        for _ in track(range(num_samples), description="[green]Core-Set query"):
+            next_center = np.argmax(min_dist)
+            new_batch.append(next_center)
 
-            self.update_distances([ind], only_new=True, reset_dist=False)
-            new_batch.append(ind)
+            new_dist = pairwise_distances(
+                unlabeled_features[next_center].reshape(1, -1),
+                unlabeled_features,
+            )
+            min_dist = np.minimum(min_dist, new_dist.ravel())
 
-        print('Maximum distance from cluster centers is %0.2f'
-              % max(self.min_distances))
-
-        mask[new_batch] = True
+        unlabeled_indices = np.flatnonzero(~self.labeled_pool)
+        mask[unlabeled_indices[new_batch]] = True
         return mask
