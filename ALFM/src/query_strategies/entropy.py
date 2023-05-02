@@ -1,5 +1,6 @@
 """Maximum entropy sampling query strategy."""
 
+from typing import Any
 
 import numpy as np
 from ALFM.src.query_strategies.base_query import BaseQuery
@@ -9,9 +10,9 @@ from numpy.typing import NDArray
 class Entropy(BaseQuery):
     """Selects samples with highest predictive entropy."""
 
-    def __init__(self) -> None:
+    def __init__(self, **params: Any) -> None:
         """Call the superclass constructor."""
-        super().__init__()
+        super().__init__(**params)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.

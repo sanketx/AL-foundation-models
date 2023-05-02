@@ -1,6 +1,5 @@
 """Abstract base class for Active Learning query methods."""
 
-
 import abc
 
 import numpy as np
