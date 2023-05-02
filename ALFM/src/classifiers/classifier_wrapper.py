@@ -28,7 +28,7 @@ class ClassifierWrapper:
         classifier_params = instantiate(cfg.classifier.params)
 
         self.classifier = classifier_type.value(
-            self.num_features, self.num_classes, **classifier_params
+            self.num_features, num_classes=self.num_classes, **classifier_params
         )
 
     def fit(
@@ -50,3 +50,16 @@ class ClassifierWrapper:
         return self.trainer.test(  # type: ignore[no-any-return]
             self.classifier, self.dataloader(dataset), ckpt_path="best", verbose=False
         )[0]
+
+    def get_probs(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+        self.classifier.set_pred_mode("probs")
+        return self._predict(features)["probs"]
+
+    def get_features(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+        self.classifier.set_pred_mode("features")
+        return self._predict(features)["features"]
+
+    def _predict(self, features: NDArray[np.float32]) -> Dict[str, NDArray[np.float32]]:
+        dataset = ALDataset(features, np.zeros(len(features), dtype=np.int64))
+        preds = self.trainer.predict(self.classifier, self.dataloader(dataset))
+        return {key: np.concatenate([p[key] for p in preds]) for key in preds[0]}
