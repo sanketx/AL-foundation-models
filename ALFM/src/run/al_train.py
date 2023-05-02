@@ -83,4 +83,5 @@ def al_train(vector_file: str, cfg: DictConfig) -> None:
         budget = (iterations[i] - iterations[i - 1]) * num_classes * cfg.budget.step
         labeled_pool |= sampler.query(budget)  # update labeled pool
 
-    #   log everything
+        # log everything
+        print()

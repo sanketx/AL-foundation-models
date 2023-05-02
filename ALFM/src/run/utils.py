@@ -26,5 +26,5 @@ def log_scores(scores: Dict[str, float], i: int, num_iter: int, budget: int) -> 
     logger.info(
         f"[{i}/{num_iter}] Budget: {budget} "
         + f"| Acc: {scores['TEST_MulticlassAccuracy']:.4f}"
-        + f" | AUROC: {scores['TEST_MulticlassAUROC']:.4f}\n"
+        + f" | AUROC: {scores['TEST_MulticlassAUROC']:.4f}"
     )
