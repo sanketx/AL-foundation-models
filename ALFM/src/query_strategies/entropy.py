@@ -32,6 +32,6 @@ class Entropy(BaseQuery):
 
         softmax_probs = self.model.get_probs(self.features[unlabeled_indices])
         entropy = -np.sum(softmax_probs * np.log(softmax_probs), axis=1)
-        indices = np.argsort(entropy)[:num_samples]
-        mask[indices] = True
+        indices = np.argsort(entropy)[-num_samples:]
+        mask[unlabeled_indices[indices]] = True
         return mask
