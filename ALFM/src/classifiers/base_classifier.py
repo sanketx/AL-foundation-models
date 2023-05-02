@@ -87,7 +87,7 @@ class BaseClassifier(LightningModule):
         )
 
     def set_pred_mode(
-        self, mode: Literal["probs", "features"] | List[Literal["probs", "features"]]
+        self, mode: Literal["probs", "embed"] | List[Literal["probs", "embed"]]
     ) -> None:
         self.pred_mode = mode if isinstance(mode, list) else [mode]
 
@@ -95,8 +95,8 @@ class BaseClassifier(LightningModule):
         self, batch: torch.Tensor, batch_idx: int
     ) -> Dict[str, torch.Tensor]:
         x, _ = batch
-        features = self.feature_extractor(x)
-        probs = self.linear(features).softmax(dim=1)
+        embedding = self.feature_extractor(x)
+        probs = self.linear(embedding).softmax(dim=1)
 
-        tensors = {"features": features, "probs": probs}
+        tensors = {"embed": embedding, "probs": probs}
         return {k: tensors[k].float().cpu().numpy() for k in self.pred_mode}
