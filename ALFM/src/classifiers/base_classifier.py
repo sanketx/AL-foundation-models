@@ -1,6 +1,7 @@
 """Base class for classifiers."""
 
 
+from typing import Dict
 from typing import List
 from typing import Literal
 from typing import Tuple
@@ -28,12 +29,13 @@ class BaseClassifier(LightningModule):
         """Intialize the model parameters."""
         super().__init__()
         self.dropout = nn.Dropout(p=dropout_p)  # for MC sampling
+        self.feature_extractor: nn.Module  # define this in subclasses
         self.linear = nn.Linear(input_dim, num_classes)
-        self.loss = nn.CrossEntropyLoss()
 
         self.lr = lr
         self.weight_decay = weight_decay
 
+        self.loss = nn.CrossEntropyLoss()
         self.metrics = nn.ModuleDict(
             {
                 stage: nn.ModuleList([metric.clone() for metric in metrics])
@@ -42,9 +44,9 @@ class BaseClassifier(LightningModule):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError(
-            "Subclass the BaseClassifier and override the forward method"
-        )
+        x = self.feature_extractor(x)
+        x = self.linear(x)
+        return x
 
     def step(
         self, batch: torch.Tensor, stage: Literal["TRAIN", "VAL", "TEST"]
@@ -83,3 +85,18 @@ class BaseClassifier(LightningModule):
         return torch.optim.AdamW(
             self.parameters(), lr=self.lr, weight_decay=self.weight_decay
         )
+
+    def set_pred_mode(
+        self, mode: Literal["probs", "features"] | List[Literal["probs", "features"]]
+    ) -> None:
+        self.pred_mode = mode if isinstance(mode, list) else [mode]
+
+    def predict_step(  # type: ignore[override]
+        self, batch: torch.Tensor, batch_idx: int
+    ) -> Dict[str, torch.Tensor]:
+        x, _ = batch
+        features = self.feature_extractor(x)
+        probs = self.linear(features).softmax(dim=1)
+
+        tensors = {"features": features, "probs": probs}
+        return {k: tensors[k].float().cpu().numpy() for k in self.pred_mode}
