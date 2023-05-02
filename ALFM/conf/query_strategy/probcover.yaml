@@ -1,4 +1,3 @@
 name: probcover
-params: {
-  "delta": 0.6,
-}
+params:
+  delta: 0.6
