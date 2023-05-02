@@ -7,6 +7,8 @@ from ALFM.src.query_strategies.uncertainty import Uncertainty
 from ALFM.src.query_strategies.entropy import Entropy
 from ALFM.src.query_strategies.margins import Margins
 from ALFM.src.query_strategies.coreset import Coreset
+from ALFM.src.query_strategies.batchbald import BatchBALD
+from ALFM.src.query_strategies.typiclust import Typiclust
 from ALFM.src.query_strategies.probcover import ProbCover
 
 
@@ -18,4 +20,6 @@ class QueryType(Enum):
     entropy = Entropy
     margins = Margins
     coreset = Coreset
+    batchbald = BatchBALD
+    typiclust = Typiclust
     probcover = ProbCover
