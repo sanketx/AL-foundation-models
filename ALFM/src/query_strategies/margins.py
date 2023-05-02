@@ -36,5 +36,5 @@ class Margins(BaseQuery):
         sorted_probs = np.sort(softmax_probs, axis=1)
         margins = sorted_probs[:, -1] - sorted_probs[:, -2]
         indices = np.argsort(margins)[:num_samples]
-        mask[indices] = True
+        mask[unlabeled_indices[indices]] = True
         return mask
