@@ -1,5 +1,6 @@
 """Coreset query strategy."""
 
+from typing import Any
 
 import numpy as np
 from ALFM.src.query_strategies.base_query import BaseQuery
@@ -21,9 +22,9 @@ class Coreset(BaseQuery):
     https://github.com/google/active-learning/blob/master/sampling_methods/kcenter_greedy.py.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **params: Any) -> None:
         """Call the superclass constructor."""
-        super().__init__()
+        super().__init__(**params)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -34,16 +35,16 @@ class Coreset(BaseQuery):
         Returns:
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
-        mask = np.zeros(len(self.features), dtype=bool)
-        labeled_features = self.features[self.labeled_pool]
-        unlabeled_features = self.features[~self.labeled_pool]
+        vectors = self.model.get_embedding(self.features)
+        labeled_vectors = vectors[self.labeled_pool]
+        unlabeled_vectors = vectors[~self.labeled_pool]
 
-        if num_samples > len(unlabeled_features):
+        if num_samples > len(unlabeled_vectors):
             raise ValueError(
-                f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_features)})"
+                f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_vectors)})"
             )
 
-        p_dist = pairwise_distances(labeled_features, unlabeled_features)
+        p_dist = pairwise_distances(labeled_vectors, unlabeled_vectors)
         min_dist = p_dist.min(axis=0)  # distance of each UL point to the nearest center
 
         new_batch = []
@@ -53,11 +54,12 @@ class Coreset(BaseQuery):
             new_batch.append(next_center)
 
             new_dist = pairwise_distances(
-                unlabeled_features[next_center].reshape(1, -1),
-                unlabeled_features,
+                unlabeled_vectors[next_center].reshape(1, -1),
+                unlabeled_vectors,
             )
             min_dist = np.minimum(min_dist, new_dist.ravel())
 
+        mask = np.zeros(len(vectors), dtype=bool)
         unlabeled_indices = np.flatnonzero(~self.labeled_pool)
         mask[unlabeled_indices[new_batch]] = True
         return mask
