@@ -3,6 +3,11 @@
 from enum import Enum
 
 from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
+from ALFM.src.datasets.dataset_wrappers import StanfordCarsWrapper
+from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
+from ALFM.src.datasets.dataset_wrappers import DTDWrapper
+from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
+from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import CIFAR100
 
@@ -13,3 +18,8 @@ class DatasetType(Enum):
     cifar10 = CIFAR10
     cifar100 = CIFAR100
     food101 = Food101Wrapper()
+    cars = StanfordCarsWrapper()
+    aircraft = FGVCAircraftWrapper()
+    dtd = DTDWrapper()
+    pets = OxfordIIITPetWrapper()
+    flowers = Flowers102Wrapper()
