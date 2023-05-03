@@ -14,6 +14,9 @@ from torch.optim import Optimizer
 from torchmetrics import Metric
 
 
+PredType = Literal["probs", "embed", "grad"]
+
+
 class BaseClassifier(LightningModule):
     """This class provides the blueprint for different classifiers."""
 
@@ -28,6 +31,9 @@ class BaseClassifier(LightningModule):
     ) -> None:
         """Intialize the model parameters."""
         super().__init__()
+        self.input_dim = input_dim
+        self.num_classes = num_classes
+
         self.dropout = nn.Dropout(p=dropout_p)  # for MC sampling
         self.feature_extractor: nn.Module  # define this in subclasses
         self.linear = nn.Linear(input_dim, num_classes)
@@ -86,9 +92,7 @@ class BaseClassifier(LightningModule):
             self.parameters(), lr=self.lr, weight_decay=self.weight_decay
         )
 
-    def set_pred_mode(
-        self, mode: Literal["probs", "embed"] | List[Literal["probs", "embed"]]
-    ) -> None:
+    def set_pred_mode(self, mode: PredType | List[PredType]) -> None:
         self.pred_mode = mode if isinstance(mode, list) else [mode]
 
     def predict_step(  # type: ignore[override]
@@ -97,6 +101,16 @@ class BaseClassifier(LightningModule):
         x, _ = batch
         embedding = self.feature_extractor(x)
         probs = self.linear(embedding).softmax(dim=1)
-
         tensors = {"embed": embedding, "probs": probs}
+
+        if "grad" in self.pred_mode:
+            tensors["grad"] = self._grad(probs, embedding)
+
         return {k: tensors[k].float().cpu().numpy() for k in self.pred_mode}
+
+    # @torch.compile()  # In case we need this to be faster
+    def _grad(self, probs: torch.Tensor, embedding: torch.Tensor) -> torch.Tensor:
+        labels = torch.argmax(probs, dim=1, keepdim=True)
+        delta = (probs - labels).view(-1, 1, self.num_classes)
+        grads = embedding.view(-1, self.input_dim, 1) * delta
+        return grads.view(-1, self.input_dim * self.num_classes)
