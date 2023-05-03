@@ -3,10 +3,13 @@
 from enum import Enum
 
 from ALFM.src.query_strategies.badge import BADGE
+from ALFM.src.query_strategies.batchbald import BatchBALD
 from ALFM.src.query_strategies.coreset import Coreset
 from ALFM.src.query_strategies.entropy import Entropy
 from ALFM.src.query_strategies.margins import Margins
+from ALFM.src.query_strategies.probcover import ProbCover
 from ALFM.src.query_strategies.random import Random
+from ALFM.src.query_strategies.typiclust import Typiclust
 from ALFM.src.query_strategies.uncertainty import Uncertainty
 
 
@@ -19,3 +22,6 @@ class QueryType(Enum):
     margins = Margins
     coreset = Coreset
     badge = BADGE
+    batchbald = BatchBALD
+    typiclust = Typiclust
+    probcover = ProbCover
