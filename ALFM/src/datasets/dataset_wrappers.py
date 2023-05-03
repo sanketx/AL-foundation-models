@@ -16,7 +16,5 @@ class Food101Wrapper:
         transform: Optional[transforms.Compose] = None,
         download: bool = False,
     ) -> VisionDataset:
-        print(download)
-
         split = "train" if train else "test"
         return Food101(root, split, transform, download=download)
