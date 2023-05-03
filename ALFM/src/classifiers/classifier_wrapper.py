@@ -59,6 +59,10 @@ class ClassifierWrapper:
         self.classifier.set_pred_mode("embed")
         return self._predict(features)["embed"]
 
+    def get_grad_embedding(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+        self.classifier.set_pred_mode("grad")
+        return self._predict(features)["grad"]
+
     def _predict(self, features: NDArray[np.float32]) -> Dict[str, NDArray[np.float32]]:
         dataset = ALDataset(features, np.zeros(len(features), dtype=np.int64))
         preds = self.trainer.predict(
