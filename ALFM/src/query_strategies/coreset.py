@@ -44,6 +44,7 @@ class Coreset(BaseQuery):
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_vectors)})"
             )
 
+        # pairwise_distances in FAISS returns the squared L2 distance
         p_dist = pairwise_distances(labeled_vectors, unlabeled_vectors)
         min_dist = p_dist.min(axis=0)  # distance of each UL point to the nearest center
 
