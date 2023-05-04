@@ -50,6 +50,7 @@ class BaseClassifier(LightningModule):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.dropout(x)
         x = self.feature_extractor(x)
         x = self.linear(x)
         return x
@@ -93,13 +94,20 @@ class BaseClassifier(LightningModule):
         )
 
     def set_pred_mode(self, mode: PredType | List[PredType]) -> None:
-        self.pred_mode = mode if isinstance(mode, list) else [mode]
+        self._pred_mode = mode if isinstance(mode, list) else [mode]
+
+    def set_dropout(self, flag: bool) -> None:
+        self._enable_dropout = flag
 
     def predict_step(  # type: ignore[override]
         self, batch: torch.Tensor, batch_idx: int
     ) -> Dict[str, torch.Tensor]:
         x, _ = batch
+
+        self.dropout.train(self._enable_dropout)
+        x = self.dropout(x)  # does nothing if dropout is disabled
+
         embedding = self.feature_extractor(x)
         probs = self.linear(embedding).softmax(dim=1)
         tensors = {"embed": embedding, "probs": probs}
-        return {k: tensors[k].float().cpu().numpy() for k in self.pred_mode}
+        return {k: tensors[k].float().cpu().numpy() for k in self._pred_mode}
