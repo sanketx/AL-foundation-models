@@ -52,23 +52,31 @@ class ClassifierWrapper:
             self.classifier, self.dataloader(dataset), ckpt_path="best", verbose=False
         )[0]
 
-    def get_probs(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+    def get_probs(
+        self, features: NDArray[np.float32], dropout: bool = False
+    ) -> NDArray[np.float32]:
         self.classifier.set_pred_mode("probs")
-        return self._predict(features)["probs"]
+        return self._predict(features, dropout)["probs"]
 
-    def get_embedding(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+    def get_embedding(
+        self, features: NDArray[np.float32], dropout: bool = False
+    ) -> NDArray[np.float32]:
         self.classifier.set_pred_mode("embed")
-        return self._predict(features)["embed"]
+        return self._predict(features, dropout)["embed"]
 
     def get_probs_and_embedding(
-        self, features: NDArray[np.float32]
+        self, features: NDArray[np.float32], dropout: bool = False
     ) -> Tuple[NDArray[np.float32], NDArray[np.float32]]:
         self.classifier.set_pred_mode(["probs", "embed"])
-        preds = self._predict(features)
+        preds = self._predict(features, dropout)
         return preds["probs"], preds["embed"]
 
-    def _predict(self, features: NDArray[np.float32]) -> Dict[str, NDArray[np.float32]]:
+    def _predict(
+        self, features: NDArray[np.float32], dropout: bool
+    ) -> Dict[str, NDArray[np.float32]]:
         dataset = ALDataset(features, np.zeros(len(features), dtype=np.int64))
+        self.classifier.set_dropout(dropout)
+
         preds = self.trainer.predict(
             self.classifier, self.dataloader(dataset), ckpt_path="best"
         )
