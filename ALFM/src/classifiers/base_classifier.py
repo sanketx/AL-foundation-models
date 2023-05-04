@@ -14,7 +14,7 @@ from torch.optim import Optimizer
 from torchmetrics import Metric
 
 
-PredType = Literal["probs", "embed", "grad"]
+PredType = Literal["probs", "embed"]
 
 
 class BaseClassifier(LightningModule):
@@ -102,15 +102,4 @@ class BaseClassifier(LightningModule):
         embedding = self.feature_extractor(x)
         probs = self.linear(embedding).softmax(dim=1)
         tensors = {"embed": embedding, "probs": probs}
-
-        if "grad" in self.pred_mode:
-            tensors["grad"] = self._grad(probs, embedding)
-
         return {k: tensors[k].float().cpu().numpy() for k in self.pred_mode}
-
-    # @torch.compile()  # In case we need this to be faster
-    def _grad(self, probs: torch.Tensor, embedding: torch.Tensor) -> torch.Tensor:
-        labels = torch.argmax(probs, dim=1, keepdim=True)
-        delta = (probs - labels).view(-1, 1, self.num_classes)
-        grads = embedding.view(-1, self.input_dim, 1) * delta
-        return grads.view(-1, self.input_dim * self.num_classes)
