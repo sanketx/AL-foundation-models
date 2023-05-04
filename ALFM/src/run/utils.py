@@ -1,9 +1,9 @@
 """Utilities for Active Learning experiments."""
 
+import logging
 from typing import Dict
 
 import numpy as np
-from ALFM.src.run.logging import logger
 from numpy.typing import NDArray
 
 
@@ -16,14 +16,14 @@ def log_composition(
     seen_classes = len(np.unique(labels[mask]))
     num_features = features.shape[1]
 
-    logger.info(
+    logging.info(
         f"Training on {num_samples}/{total_samples} samples with dim: "
         + f"{num_features}, seen {seen_classes}/{num_classes} classes"
     )
 
 
 def log_scores(scores: Dict[str, float], i: int, num_iter: int, budget: int) -> None:
-    logger.info(
+    logging.info(
         f"[{i}/{num_iter}] Budget: {budget} "
         + f"| Acc: {scores['TEST_MulticlassAccuracy']:.4f}"
         + f" | AUROC: {scores['TEST_MulticlassAUROC']:.4f}"
