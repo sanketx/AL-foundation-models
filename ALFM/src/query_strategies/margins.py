@@ -12,9 +12,14 @@ class Margins(BaseQuery):
     class softmax probabilities.
     """
 
-    def __init__(self, **params: Any) -> None:
-        """Call the superclass constructor."""
+    def __init__(self, enable_dropout: bool, **params: Any) -> None:
+        """Call the superclass constructor.
+
+        Args:
+            enable_dropout (bool): flag to enable dropout at inference
+        """
         super().__init__(**params)
+        self.enable_dropout = enable_dropout
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -33,7 +38,9 @@ class Margins(BaseQuery):
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
             )
 
-        softmax_probs = self.model.get_probs(self.features[unlabeled_indices])
+        softmax_probs = self.model.get_probs(
+            self.features[unlabeled_indices], dropout=self.enable_dropout
+        )
         sorted_probs = np.sort(softmax_probs, axis=1)
         margins = sorted_probs[:, -1] - sorted_probs[:, -2]
         indices = np.argsort(margins)[:num_samples]
