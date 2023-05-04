@@ -1,2 +1,3 @@
 name: uncertainty
-params: {}
+params:
+  enable_dropout: false
