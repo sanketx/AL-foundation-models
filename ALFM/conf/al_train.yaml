@@ -5,7 +5,9 @@ defaults:
   - model: dino_vit_g14
   - dataset: cifar100
   - classifier: linear_classifier
-  - hydra/job_logging: none
+  - hydra/hydra_logging: rich_logger
+  - hydra/job_logging: rich_logger
+
 
 
 # Active Learning experiment config

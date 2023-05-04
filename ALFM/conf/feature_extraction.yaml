@@ -2,6 +2,8 @@ defaults:
   - _self_
   - dataset: cifar10
   - model: dino_vit_S14
+  - override hydra/hydra_logging: rich_logger
+  - override hydra/job_logging: rich_logger
 
 
 split: "both"  # "train" | "test" | "both"
@@ -46,9 +48,12 @@ hydra:
         dino_vit_L14,
         dino_vit_g14
 
-  # temporarily disable logging
+  # disable hydra logging
   run:
     dir: ""
+  sweep:
+    dir: /tmp/multirun
   job:
     chdir: false
   output_subdir: null
+  
