@@ -33,13 +33,16 @@ def get_vector_file(dataset: str, model: str, feature_dir: str) -> str:
 def main(cfg: DictConfig) -> None:
     env = dotenv_values()
     feature_dir = env.get("FEATURE_CACHE_DIR", None)
+    log_dir = env.get("LOG_DIR", None)
 
     assert (
         feature_dir is not None
     ), "Please set the 'FEATURE_CACHE_DIR' variable in your .env file"
 
+    assert log_dir is not None, "Please set the 'LOG_DIR' variable in your .env file"
+
     vector_file = get_vector_file(cfg.dataset.name, cfg.model.name, feature_dir)
-    al_train(vector_file, cfg)
+    al_train(vector_file, log_dir, cfg)
 
 
 if __name__ == "__main__":
