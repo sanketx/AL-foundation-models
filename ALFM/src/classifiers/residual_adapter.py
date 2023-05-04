@@ -32,7 +32,6 @@ class ResidualAdapter(BaseClassifier):
     ) -> None:
         super().__init__(input_dim, **params)
         self.feature_extractor = nn.Sequential(
-            self.dropout,
             ResidualMLP(input_dim, scale, init_alpha),
             nn.BatchNorm1d(input_dim, affine=False),
         )
