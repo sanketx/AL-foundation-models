@@ -1,5 +1,6 @@
 """Feature extraction and caching using pretraing backbones."""
 
+import logging
 import os
 from typing import Any
 from typing import Callable
@@ -17,6 +18,7 @@ from numpy.typing import NDArray
 from torch.utils.data import DataLoader
 
 
+logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
 torch.set_float32_matmul_precision("medium")  # type: ignore[no-untyped-call]
 
 
@@ -84,7 +86,7 @@ def extract_features(
     os.makedirs(dst_dir, exist_ok=True)
 
     if check_existing_features(vector_file, split):
-        print(
+        logging.warn(
             f"{split} features have already been computed for the {dataset_type.name}"
             + f" dataset with the {model_type.name} model"
         )

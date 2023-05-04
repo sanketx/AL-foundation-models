@@ -1,5 +1,6 @@
 """Active Learning training and experimentation code."""
 
+import logging
 from typing import Tuple
 
 import h5py
@@ -14,6 +15,7 @@ from numpy.typing import NDArray
 from omegaconf import DictConfig
 
 
+logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
