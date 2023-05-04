@@ -9,8 +9,7 @@ import torch
 from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
 from ALFM.src.init_strategies.registry import InitType
 from ALFM.src.query_strategies.registry import QueryType
-from ALFM.src.run.utils import log_composition
-from ALFM.src.run.utils import log_scores
+from ALFM.src.run.utils import ExperimentLogger
 from numpy.typing import NDArray
 from omegaconf import DictConfig
 
@@ -46,7 +45,8 @@ def load_vectors(
     return train_x, train_y, test_x, test_y
 
 
-def al_train(vector_file: str, cfg: DictConfig) -> None:
+def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
+    exp_logger = ExperimentLogger(log_dir, cfg)
     set_seed(cfg.seed)
     train_x, train_y, test_x, test_y = load_vectors(vector_file)
 
@@ -71,13 +71,13 @@ def al_train(vector_file: str, cfg: DictConfig) -> None:
     )
 
     for i, iteration in enumerate(iterations, 1):
-        log_composition(train_x, train_y, labeled_pool)
+        exp_logger.log_composition(train_x, train_y, labeled_pool)
 
         model = ClassifierWrapper(cfg)
         model.fit(train_x, train_y, labeled_pool)
         scores = model.eval(test_x, test_y)
 
-        log_scores(scores, i, len(iterations), budget)
+        exp_logger.log_scores(scores, i, len(iterations), budget)
 
         if i == len(iterations):
             return  # no need to run the query for the last iteration
