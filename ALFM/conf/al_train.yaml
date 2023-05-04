@@ -20,6 +20,7 @@ budget: # query budget per class
   step: 1  # query per iteration
 
 seed: 1
+force_exp: false
 
 # Classifier config
 classifier:
