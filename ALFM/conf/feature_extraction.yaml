@@ -36,7 +36,12 @@ hydra:
       dataset: 
         cifar10,
         cifar100,
-        food101
+        food101,
+        cars,
+        aircraft,
+        dtd,
+        pets,
+        flowers
       model:
         openclip_vit_B16,
         openclip_vit_L14,
