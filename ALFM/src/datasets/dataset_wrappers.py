@@ -50,7 +50,7 @@ class FGVCAircraftWrapper:
         download: bool = False,
     ) -> VisionDataset:
         split = "trainval" if train else "test"
-        return FGVCAircraft(root, split, transform, download=download)
+        return FGVCAircraft(root, split, transform=transform, download=download)
 
 
 class VOCWrapper:
