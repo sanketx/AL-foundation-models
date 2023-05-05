@@ -9,7 +9,9 @@ from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import Flowers102
 from torchvision.datasets import Food101
 from torchvision.datasets import OxfordIIITPet
+from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
+from torchvision.datasets import SVHN
 from torchvision.datasets import VisionDataset
 
 
@@ -26,7 +28,8 @@ class Food101Wrapper:
 
 
 class SUN397Wrapper:
-    pass
+    # TO-DO: Fine-grained, 397 classes with >100 examples per class
+    pass 
 
 
 class StanfordCarsWrapper:
@@ -84,6 +87,7 @@ class OxfordIIITPetWrapper:
 
 
 class Caltech101Wrapper:
+    # TO-DO: 40-800 examples per class
     pass
 
 
@@ -99,13 +103,39 @@ class Flowers102Wrapper:
         return Flowers102(root, split, transform, download=download)
 
 
+class SVHNWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = False,
+    ) -> VisionDataset:
+        split = "train" if train else "test"
+        return SVHN(root, split, transform, download=download)
+
+
 class CUB200Wrapper:
     pass
 
 
+class ImageNetWrapper:
+    # TO-DO: Implement subsets 100, 200 first
+    pass
+
+
 class INaturalistWrapper:
+    # TO-DO: 2018, 2021 versions
     pass
 
 
-class Places205Wrapper:
-    pass
+class Places365Wrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = False,
+    ) -> VisionDataset:
+        split = "train-standard" if train else "val"
+        return Places365(root, split, small=True, transform=transform, download=download)
