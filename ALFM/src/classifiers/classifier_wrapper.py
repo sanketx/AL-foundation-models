@@ -1,4 +1,6 @@
 """Wrapper class for classifiers to faciliate Active Learning."""
+
+import logging
 import warnings
 from typing import Dict
 from typing import Tuple
@@ -34,20 +36,31 @@ class ClassifierWrapper:
 
     def fit(
         self,
-        train_x: NDArray[np.float32],
-        train_y: NDArray[np.int64],
-        labeled_pool: NDArray[bool_],
+        features: NDArray[np.float32],
+        labels: NDArray[np.int64],
+        mask: NDArray[bool_],
     ) -> None:
-        dataset = ALDataset(train_x, train_y, labeled_pool)
+        total_samples = len(features)
+        num_samples = len(features[mask])
+        num_classes = len(np.unique(labels))
+        seen_classes = len(np.unique(labels[mask]))
+        num_features = features.shape[1]
+
+        logging.info(
+            f"Training on {num_samples}/{total_samples} samples with dim: "
+            + f"{num_features}, seen {seen_classes}/{num_classes} classes"
+        )
+
+        dataset = ALDataset(features, labels, mask)
         self.trainer = instantiate(self.trainer_cfg)
         self.trainer.fit(self.classifier, self.dataloader(dataset, shuffle=True))
 
     def eval(
         self,
-        test_x: NDArray[np.float32],
-        test_y: NDArray[np.int64],
+        features: NDArray[np.float32],
+        labels: NDArray[np.int64],
     ) -> Dict[str, float]:
-        dataset = ALDataset(test_x, test_y)
+        dataset = ALDataset(features, labels)
         return self.trainer.test(  # type: ignore[no-any-return]
             self.classifier, self.dataloader(dataset), ckpt_path="best", verbose=False
         )[0]
