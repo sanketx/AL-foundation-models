@@ -41,7 +41,9 @@ hydra:
         aircraft,
         dtd,
         pets,
-        flowers
+        flowers,
+        svhn,
+        places365
       model:
         openclip_vit_B16,
         openclip_vit_L14,
