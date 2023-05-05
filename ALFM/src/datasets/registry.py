@@ -10,7 +10,9 @@ from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
 from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
 from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
 from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
+from ALFM.src.datasets.dataset_wrappers import Places365Wrapper
 from ALFM.src.datasets.dataset_wrappers import StanfordCarsWrapper
+from ALFM.src.datasets.dataset_wrappers import SVHNWrapper
 
 
 class DatasetType(Enum):
@@ -24,3 +26,5 @@ class DatasetType(Enum):
     dtd = DTDWrapper()
     pets = OxfordIIITPetWrapper()
     flowers = Flowers102Wrapper()
+    svhn = SVHNWrapper()
+    places365 = Places365Wrapper()
