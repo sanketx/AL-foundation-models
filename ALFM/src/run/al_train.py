@@ -6,12 +6,13 @@ from typing import Tuple
 import h5py
 import numpy as np
 import torch
+from numpy.typing import NDArray
+from omegaconf import DictConfig
+
 from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
 from ALFM.src.init_strategies.registry import InitType
 from ALFM.src.query_strategies.registry import QueryType
 from ALFM.src.run.utils import ExperimentLogger
-from numpy.typing import NDArray
-from omegaconf import DictConfig
 
 
 logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)

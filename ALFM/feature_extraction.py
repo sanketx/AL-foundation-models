@@ -1,11 +1,12 @@
 """Script to extract and save image features using pretrained backbones."""
 
 import hydra
+from dotenv import dotenv_values
+from omegaconf import DictConfig
+
 from ALFM.src.datasets.registry import DatasetType
 from ALFM.src.models.registry import ModelType
 from ALFM.src.run.feature_extraction import extract_features
-from dotenv import dotenv_values
-from omegaconf import DictConfig
 
 
 @hydra.main(

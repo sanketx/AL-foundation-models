@@ -7,12 +7,13 @@ from typing import Tuple
 
 import numpy as np
 import torch
-from ALFM.src.classifiers.registry import ClassifierType
-from ALFM.src.datasets.al_dataset import ALDataset
 from hydra.utils import instantiate
 from numpy import bool_
 from numpy.typing import NDArray
 from omegaconf import DictConfig
+
+from ALFM.src.classifiers.registry import ClassifierType
+from ALFM.src.datasets.al_dataset import ALDataset
 
 
 warnings.simplefilter("ignore")

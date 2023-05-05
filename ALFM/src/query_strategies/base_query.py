@@ -3,8 +3,9 @@
 import abc
 
 import numpy as np
-from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
 from numpy.typing import NDArray
+
+from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
 
 
 class BaseQuery(metaclass=abc.ABCMeta):

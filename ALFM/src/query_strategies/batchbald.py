@@ -3,8 +3,9 @@
 from typing import Any
 
 import numpy as np
-from ALFM.src.query_strategies.base_query import BaseQuery
 from numpy.typing import NDArray
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class BatchBALD(BaseQuery):

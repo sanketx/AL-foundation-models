@@ -1,8 +1,9 @@
 """Random init query class."""
 
 import numpy as np
-from ALFM.src.init_strategies.base_init import BaseInit
 from numpy.typing import NDArray
+
+from ALFM.src.init_strategies.base_init import BaseInit
 
 
 class RandomInit(BaseInit):

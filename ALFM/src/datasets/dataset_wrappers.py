@@ -4,12 +4,12 @@
 from typing import Optional
 
 from torchvision import transforms
-from torchvision.datasets import Food101
-from torchvision.datasets import StanfordCars
-from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import DTD
-from torchvision.datasets import OxfordIIITPet
+from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import Flowers102
+from torchvision.datasets import Food101
+from torchvision.datasets import OxfordIIITPet
+from torchvision.datasets import StanfordCars
 from torchvision.datasets import VisionDataset
 
 
@@ -78,7 +78,9 @@ class OxfordIIITPetWrapper:
         download: bool = False,
     ) -> VisionDataset:
         split = "trainval" if train else "test"
-        return OxfordIIITPet(root, split, target_types='category', transform=transform, download=download)
+        return OxfordIIITPet(
+            root, split, target_types="category", transform=transform, download=download
+        )
 
 
 class Caltech101Wrapper:

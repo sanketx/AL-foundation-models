@@ -5,9 +5,10 @@ from typing import cast
 
 import open_clip
 import torch
-from ALFM.src.models.registry import ModelType
 from torch import nn
 from torchvision import transforms
+
+from ALFM.src.models.registry import ModelType
 
 
 def dino_transform(resize_size: int = 256, crop_size: int = 224) -> transforms.Compose:
