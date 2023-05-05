@@ -71,13 +71,11 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
     )
 
     for i, iteration in enumerate(iterations, 1):
-        exp_logger.log_composition(train_x, train_y, labeled_pool)
-
         model = ClassifierWrapper(cfg)
         model.fit(train_x, train_y, labeled_pool)
-        scores = model.eval(test_x, test_y)
 
-        exp_logger.log_scores(scores, i, len(iterations), budget)
+        scores = model.eval(test_x, test_y)
+        exp_logger.log_scores(scores, i, len(iterations), labeled_pool.sum())
 
         if i == len(iterations):
             return  # no need to run the query for the last iteration
