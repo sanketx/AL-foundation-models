@@ -20,7 +20,7 @@ budget: # query budget per class
   step: 1  # query per iteration
 
 seed: 1
-force_exp: false
+force_exp: false  # overwrite previous results with identical params
 
 # Classifier config
 classifier:
