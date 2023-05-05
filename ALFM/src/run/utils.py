@@ -1,5 +1,6 @@
 """Experiment logger for Active Learning experiments."""
 
+import csv
 import hashlib
 import json
 import logging
@@ -42,49 +43,51 @@ class ExperimentLogger:
         logging.info(f"Experiment Parameters: {pretty_repr(cfg)}")
 
         json_str = json.dumps(cfg, sort_keys=True, ensure_ascii=False)
-        self.hash_str = hashlib.md5(json_str.encode("utf-8")).hexdigest()
+        hash_str = hashlib.blake2b(json_str.encode("utf-8"), digest_size=8).hexdigest()
 
-        file_name = f"{cfg['query_strategy']['name']}-{self.hash_str}.yaml"
-        exp_file = self.exp_dir / file_name
+        self.file_name = f"{cfg['query_strategy']['name']}-{hash_str}"
+        exp_file = self.exp_dir / f"{self.file_name}.yaml"
 
         if os.path.exists(exp_file) and not force_exp:
             logging.error(
-                f"A config file with these parameters exists: '{file_name}'."
+                f"A config file with these parameters exists: '{self.file_name}.yaml'."
                 + "\nSpecify 'force_exp=true' to override"
             )
             sys.exit(1)
 
         if os.path.exists(exp_file) and force_exp:
             logging.warning(
-                f"A config file with these parameters exists: '{file_name}'."
+                f"A config file with these parameters exists: '{self.file_name}.yaml'."
                 + "\nOverwriting previous experiment's results"
             )
 
-        logging.info(f"Saving parameters to '{file_name}'")
+            csv_file = self.csv_dir / f"{self.file_name}.csv"
+
+            if os.path.isfile(csv_file):
+                os.remove(csv_file)  # remove previous experiment's results
+
+        logging.info(f"Saving parameters to '{self.file_name}.yaml'")
         OmegaConf.save(cfg, exp_file)
 
-    def log_composition(
-        self,
-        features: NDArray[np.float32],
-        labels: NDArray[np.int64],
-        mask: NDArray[np.bool_],
-    ) -> None:
-        total_samples = len(features)
-        num_samples = len(features[mask])
-        num_classes = len(np.unique(labels))
-        seen_classes = len(np.unique(labels[mask]))
-        num_features = features.shape[1]
-
-        logging.info(
-            f"Training on {num_samples}/{total_samples} samples with dim: "
-            + f"{num_features}, seen {seen_classes}/{num_classes} classes"
-        )
-
     def log_scores(
-        self, scores: Dict[str, float], i: int, num_iter: int, budget: int
+        self, scores: Dict[str, float], iteration: int, num_iter: int, num_samples: int
     ) -> None:
         logging.info(
-            f"[{i}/{num_iter}] Budget: {budget} "
+            f"[{iteration}/{num_iter}] Training samples: {num_samples} "
             + f"| Acc: {scores['TEST_MulticlassAccuracy']:.4f}"
             + f" | AUROC: {scores['TEST_MulticlassAUROC']:.4f}"
         )
+
+        fields = ["iteration", "num_samples"] + list(scores.keys())
+        data = {"iteration": iteration, "num_samples": num_samples} | scores
+        csv_file = self.csv_dir / f"{self.file_name}.csv"
+        file_exists = os.path.isfile(csv_file)
+
+        with open(csv_file, mode="a", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fields)
+
+            if not file_exists:
+                writer.writeheader()
+
+            writer.writerow(data)
+            fh.flush()
