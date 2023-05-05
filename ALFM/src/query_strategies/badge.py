@@ -77,9 +77,12 @@ class BADGE(BaseQuery):
         """
         unlabeled_features = self.features[~self.labeled_pool]
         probs, embedding = self.model.get_probs_and_embedding(unlabeled_features)
-        labels = np.argmax(probs, keepdims=True)
+        labels = np.argmax(probs, axis=1)
 
-        delta = torch.from_numpy(probs - labels)
+        one_hot = np.zeros_like(probs)
+        one_hot[np.arange(len(one_hot)), labels] = 1
+
+        delta = torch.from_numpy(probs - one_hot)
         vectors = torch.from_numpy(embedding)
 
         if num_samples > len(unlabeled_features):
