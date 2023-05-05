@@ -9,13 +9,14 @@ import h5py
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from numpy.typing import NDArray
+from torch.utils.data import DataLoader
+
 from ALFM.src.datasets.factory import create_dataset
 from ALFM.src.datasets.registry import DatasetType
 from ALFM.src.models.backbone_wrapper import BackboneWrapper
 from ALFM.src.models.factory import create_model
 from ALFM.src.models.registry import ModelType
-from numpy.typing import NDArray
-from torch.utils.data import DataLoader
 
 
 logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)

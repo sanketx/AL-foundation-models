@@ -3,10 +3,11 @@
 from typing import Any
 
 import numpy as np
-from ALFM.src.query_strategies.base_query import BaseQuery
 from faiss import pairwise_distances
 from numpy.typing import NDArray
 from rich.progress import track
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class Coreset(BaseQuery):

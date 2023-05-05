@@ -5,9 +5,10 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
-from ALFM.src.query_strategies.base_query import BaseQuery
 from faiss import pairwise_distances
 from numpy.typing import NDArray
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class Typiclust(BaseQuery):
@@ -17,6 +18,7 @@ class Typiclust(BaseQuery):
     Opposite Strategies Suit High and Low Budgets" (https://arxiv.org/abs/2202.02794).
     Code aapted from https://github.com/avihu111/TypiClust.
     """
+
     MIN_CLUSTER_SIZE = 5
     MAX_NUM_CLUSTERS = 500
     K = 20
@@ -26,21 +28,16 @@ class Typiclust(BaseQuery):
         super().__init__(**params)
 
     def get_nn(
-        self,
-        features: NDArray[np.float32],
-        k: int
+        self, features: NDArray[np.float32], k: int
     ) -> Tuple(NDArray[np.float32], NDArray[np.int64]):
         """Get the k nearest neighbors of each point in features."""
         distances = pairwise_distances(features, features)
-        indices = np.argsort(distances, axis=1)[:, 1:k + 1]
+        indices = np.argsort(distances, axis=1)[:, 1 : k + 1]
         distances = distances[np.arange(distances.shape[0])[:, None], indices]
         return distances, indices
 
     def get_mean_nn_dist(
-        self,
-        features: NDArray[np.float32],
-        k: int,
-        return_indices: bool = False
+        self, features: NDArray[np.float32], k: int, return_indices: bool = False
     ) -> NDArray[np.float32]:
         """Get the mean distance to the k nearest neighbors of each point in features."""
         distances, indices = self.get_nn(features, k)
@@ -50,9 +47,7 @@ class Typiclust(BaseQuery):
         return mean_distances
 
     def compute_typicality(
-        self,
-        features: NDArray[np.float32],
-        k: int
+        self, features: NDArray[np.float32], k: int
     ) -> NDArray[np.float32]:
         """Compute the typicality of each point in features."""
         mean_distances = self.get_mean_nn_dist(features, k)
@@ -72,8 +67,7 @@ class Typiclust(BaseQuery):
     ):
         vectors = self.model.get_embedding(self.features)
         num_clusters = min(
-            len(vectors[self.labeled_pool]) + num_samples,
-            self.MAX_NUM_CLUSTERS
+            len(vectors[self.labeled_pool]) + num_samples, self.MAX_NUM_CLUSTERS
         )
         self.clusters = self.fast_kmeans(vectors, num_clusters)
 
@@ -95,16 +89,20 @@ class Typiclust(BaseQuery):
         existing_indices = np.arange(len(labeled_indices))
 
         cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
-        cluster_labeled_counts = np.bincount(labels[existing_indices], minlength=len(cluster_ids))
+        cluster_labeled_counts = np.bincount(
+            labels[existing_indices], minlength=len(cluster_ids)
+        )
 
-        clusters_df = pd.DataFrame({
-            'cluster_id': cluster_ids,
-            'cluster_size': cluster_sizes,
-            'existing_count': cluster_labeled_counts,
-            'neg_cluster_size': -1 * cluster_sizes,
-        })
+        clusters_df = pd.DataFrame(
+            {
+                "cluster_id": cluster_ids,
+                "cluster_size": cluster_sizes,
+                "existing_count": cluster_labeled_counts,
+                "neg_cluster_size": -1 * cluster_sizes,
+            }
+        )
         clusters_df = clusters_df[clusters_df.cluster_size > self.MIN_CLUSTER_SIZE]
-        clusters_df = clusters_df.sort_values(['existing_count', 'neg_cluster_size'])
+        clusters_df = clusters_df.sort_values(["existing_count", "neg_cluster_size"])
         labels[existing_indices] = -1
 
         selected = []
@@ -112,12 +110,18 @@ class Typiclust(BaseQuery):
             cluster = clusters_df.iloc[i % len(clusters_df)].cluster_id
             cluster_indices = np.flatnonzero(labels == cluster)
             feats = self.features[cluster_indices]
-            typicality = self.compute_typicality(feats, min(self.K, len(cluster_indices) // 2))
+            typicality = self.compute_typicality(
+                feats, min(self.K, len(cluster_indices) // 2)
+            )
             idx = cluster_indices[np.argmax(typicality)]
             selected.append(idx)
             labels[idx] = -1
 
         selected = np.array(selected)
-        assert len(selected) == num_samples, f"Expected {num_samples} samples, got {len(selected)}"
-        assert len(np.intersect1d(selected, existing_indices)) == 0, "Selected samples must be unlabeled"
+        assert (
+            len(selected) == num_samples
+        ), f"Expected {num_samples} samples, got {len(selected)}"
+        assert (
+            len(np.intersect1d(selected, existing_indices)) == 0
+        ), "Selected samples must be unlabeled"
         mask[selected] = True

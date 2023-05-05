@@ -4,9 +4,10 @@ from typing import Any
 
 import numpy as np
 import torch
-from ALFM.src.query_strategies.base_query import BaseQuery
 from numpy.typing import NDArray
 from rich.progress import track
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class BADGE(BaseQuery):

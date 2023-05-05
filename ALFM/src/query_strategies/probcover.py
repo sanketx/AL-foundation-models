@@ -3,9 +3,10 @@
 from typing import Any
 
 import numpy as np
-from ALFM.src.query_strategies.base_query import BaseQuery
 from faiss import pairwise_distances
 from numpy.typing import NDArray
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class ProbCover(BaseQuery):
@@ -36,8 +37,8 @@ class ProbCover(BaseQuery):
         xs, ys = np.where(mask)
         ds = dist[xs, ys]
 
-        print(f'Finished constructing graph using delta={self.delta}')
-        return {'x': xs, 'y': ys, 'd': ds}
+        print(f"Finished constructing graph using delta={self.delta}")
+        return {"x": xs, "y": ys, "d": ds}
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -58,35 +59,46 @@ class ProbCover(BaseQuery):
             )
 
         indices = []
-        edge_from_seen = np.isin(self.delta_graph['x'], labeled_indices)
-        covered_samples = np.unique(self.delta_graph['y'][edge_from_seen])
+        edge_from_seen = np.isin(self.delta_graph["x"], labeled_indices)
+        covered_samples = np.unique(self.delta_graph["y"][edge_from_seen])
         # remove incoming edges to all covered samples from the existing labeled set
         cur = {
-            'x': self.delta_graph['x'][~np.isin(self.delta_graph['y'], covered_samples)],
-            'y': self.delta_graph['y'][~np.isin(self.delta_graph['y'], covered_samples)],
-            'd': self.delta_graph['d'][~np.isin(self.delta_graph['y'], covered_samples)],
+            "x": self.delta_graph["x"][
+                ~np.isin(self.delta_graph["y"], covered_samples)
+            ],
+            "y": self.delta_graph["y"][
+                ~np.isin(self.delta_graph["y"], covered_samples)
+            ],
+            "d": self.delta_graph["d"][
+                ~np.isin(self.delta_graph["y"], covered_samples)
+            ],
         }
 
         for i in range(num_samples):
             coverage = len(covered_samples) / (len(self.features))
-            degrees = np.bincount(cur['x'], minlength=len(self.features))
-            print(f'Coverage: {coverage:.2f}, Max degree: {np.max(degrees):.2f}, Edge count: {len(cur["x"])}')
+            degrees = np.bincount(cur["x"], minlength=len(self.features))
+            print(
+                f'Coverage: {coverage:.2f}, Max degree: {np.max(degrees):.2f}, Edge count: {len(cur["x"])}'
+            )
 
             sample = np.argmax(degrees)
             # sample = np.random.choice(np.argsort(degrees)[::-1][:5])  # randomize selection from top 5
-            new_covered_samples = cur['y'][cur['x'] == sample]
+            new_covered_samples = cur["y"][cur["x"] == sample]
 
-            assert len(np.intersect1d(new_covered_samples, covered_samples)) == 0, \
-                'New covered samples should not be in the covered set.'
+            assert (
+                len(np.intersect1d(new_covered_samples, covered_samples)) == 0
+            ), "New covered samples should not be in the covered set."
 
             cur = {
-                'x': cur['x'][~np.isin(cur['y'], covered_samples)],
-                'y': cur['y'][~np.isin(cur['y'], covered_samples)],
-                'd': cur['d'][~np.isin(cur['y'], covered_samples)],
+                "x": cur["x"][~np.isin(cur["y"], covered_samples)],
+                "y": cur["y"][~np.isin(cur["y"], covered_samples)],
+                "d": cur["d"][~np.isin(cur["y"], covered_samples)],
             }
             covered_samples = np.concatenate([covered_samples, new_covered_samples])
             indices.append(sample)
 
-        assert len(indices) == num_samples, 'Number of selected samples does not match num_samples.'
+        assert (
+            len(indices) == num_samples
+        ), "Number of selected samples does not match num_samples."
         mask[indices] = True
         return mask

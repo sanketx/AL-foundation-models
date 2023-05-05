@@ -2,8 +2,9 @@
 
 from typing import Any
 
-from ALFM.src.classifiers.base_classifier import BaseClassifier
 from torch import nn
+
+from ALFM.src.classifiers.base_classifier import BaseClassifier
 
 
 class LinearClassifier(BaseClassifier):

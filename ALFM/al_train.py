@@ -4,9 +4,10 @@ import os
 
 import h5py
 import hydra
-from ALFM.src.run.al_train import al_train
 from dotenv import dotenv_values
 from omegaconf import DictConfig
+
+from ALFM.src.run.al_train import al_train
 
 
 def get_vector_file(dataset: str, model: str, feature_dir: str) -> str:

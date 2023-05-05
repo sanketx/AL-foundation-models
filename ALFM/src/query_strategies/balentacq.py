@@ -1,20 +1,17 @@
-"""BatchBALD query strategy."""
+"""Balanced entropy acquisition strategy."""
 
 from typing import Any
 
 import numpy as np
+from ALFM.src.query_strategies.base_query import BaseQuery
 from numpy.typing import NDArray
 
-from ALFM.src.query_strategies.base_query import BaseQuery
 
+class BalEntAcq(BaseQuery):
+    """Balanced entropy query strategy.
 
-class BatchBALD(BaseQuery):
-    """BatchBALD query strategy.
-
-    Selects a batch of samples with highest mutual information between the
-    samples and the model parameters. Described in Kirsh et al., "BatchBALD:
-    Efficient and Diverse Batch Acquisition for Deep Bayesian Active Learning"
-    (https://arxiv.org/abs/1906.08158).
+    From Woo, "Active learning in Bayesian Neural Networks with Balanced
+    Entropy Learning Principle" (https://openreview.net/pdf?id=ZTMuZ68B1g).
     """
 
     def __init__(self, **params: Any) -> None:

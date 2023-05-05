@@ -2,14 +2,15 @@
 
 from enum import Enum
 
-from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
-from ALFM.src.datasets.dataset_wrappers import StanfordCarsWrapper
-from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
-from ALFM.src.datasets.dataset_wrappers import DTDWrapper
-from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
-from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import CIFAR100
+
+from ALFM.src.datasets.dataset_wrappers import DTDWrapper
+from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
+from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
+from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
+from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
+from ALFM.src.datasets.dataset_wrappers import StanfordCarsWrapper
 
 
 class DatasetType(Enum):

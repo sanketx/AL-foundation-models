@@ -2,9 +2,10 @@
 
 from typing import Optional
 
-from ALFM.src.datasets.registry import DatasetType
 from torchvision import transforms
 from torchvision.datasets import VisionDataset
+
+from ALFM.src.datasets.registry import DatasetType
 
 
 def create_dataset(
