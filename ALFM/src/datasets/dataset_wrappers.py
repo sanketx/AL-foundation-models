@@ -167,7 +167,7 @@ class AmyloidBetaWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return AmyloidBeta2019Dataset(
             root, split=split, transform=transform, download=download
         )
@@ -181,7 +181,7 @@ class BloodSmearWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return BloodSmearDataSet(
             root, split=split, transform=transform, download=download
         )
@@ -195,7 +195,7 @@ class CellCycleWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return BBBC048CellCycleDataset(
             root, split=split, transform=transform, download=download
         )
@@ -209,7 +209,7 @@ class ColonPolypsWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return MHist(root, split=split, transform=transform, download=download)
 
 
@@ -221,7 +221,7 @@ class LiquidBasedCytologyWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return Hussain2019Dataset(
             root, split=split, transform=transform, download=download
         )
@@ -235,7 +235,7 @@ class HeartFailureWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return UPennHeart2018Dataset(
             root, split=split, transform=transform, download=download
         )
@@ -249,7 +249,7 @@ class ColorectalHistologyWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return ColorectalHistologyDataset(
             root, split=split, transform=transform, download=download
         )
@@ -263,7 +263,7 @@ class PatchCamelyonWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train" if train else "test"
+        split = "train+val" if train else "test"
         return PatchCamelyonDataSet(
             root, split=split, transform=transform, download=download
         )
