@@ -34,9 +34,7 @@ class BalEntAcq(BaseQuery):
         return samples
 
     def _differential_entropy(
-        self,
-        alpha: NDArray[np.float32],
-        beta: NDArray[np.float32]
+        self, alpha: NDArray[np.float32], beta: NDArray[np.float32]
     ) -> NDArray[np.float32]:
         """Calculate the differential entropy of the given softmax probabilities.
 
@@ -51,7 +49,10 @@ class BalEntAcq(BaseQuery):
         beta = torch.tensor(beta)
 
         def beta_func(x, y):
-            return torch.exp(torch.lgamma(x) + torch.lgamma(y) - torch.lgamma(x + y)) + 1e-32
+            return (
+                torch.exp(torch.lgamma(x) + torch.lgamma(y) - torch.lgamma(x + y))
+                + 1e-32
+            )
 
         diff_entropy = (
             torch.log(beta_func(alpha + 1, beta))
