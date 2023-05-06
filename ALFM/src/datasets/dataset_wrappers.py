@@ -3,15 +3,24 @@
 
 from typing import Optional
 
+from bcv.datasets.cell_biology.bbbc.bbbc048_cell_cycle import BBBC048CellCycleDataset
+from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataSet
+from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
+from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
+from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
+from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
+from bcv.datasets.pathology.mhist import MHist
+from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
+from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import DTD
+from torchvision.datasets import SVHN
 from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import Flowers102
 from torchvision.datasets import Food101
 from torchvision.datasets import OxfordIIITPet
 from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
-from torchvision.datasets import SVHN
 from torchvision.datasets import VisionDataset
 
 
@@ -29,7 +38,7 @@ class Food101Wrapper:
 
 class SUN397Wrapper:
     # TO-DO: Fine-grained, 397 classes with >100 examples per class
-    pass 
+    pass
 
 
 class StanfordCarsWrapper:

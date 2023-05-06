@@ -3,8 +3,9 @@
 from typing import Any
 
 import numpy as np
-from ALFM.src.query_strategies.base_query import BaseQuery
 from numpy.typing import NDArray
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class PowerBALD(BaseQuery):
@@ -28,10 +29,7 @@ class PowerBALD(BaseQuery):
             NDArray[np.float32]: MC samples from the model.
         """
         samples = np.stack(
-            [
-                self.model.get_probs(features, dropout=True)
-                for _ in range(self.M)
-            ]
+            [self.model.get_probs(features, dropout=True) for _ in range(self.M)]
         )
         return samples
 
