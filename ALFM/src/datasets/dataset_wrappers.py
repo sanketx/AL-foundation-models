@@ -147,9 +147,123 @@ class Places365Wrapper:
         download: bool = False,
     ) -> VisionDataset:
         split = "train-standard" if train else "val"
-        if download:   # Check if image archive already extracted
+        if download:  # Check if image archive already extracted
             try:
-                Places365(root, split, small=True, transform=transform, download=download)
+                Places365(
+                    root, split, small=True, transform=transform, download=download
+                )
             except RuntimeError:
                 download = False
-        return Places365(root, split, small=True, transform=transform, download=download)
+        return Places365(
+            root, split, small=True, transform=transform, download=download
+        )
+
+
+class AmyloidBetaWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return AmyloidBeta2019Dataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class BloodSmearWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return BloodSmearDataSet(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class CellCycleWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return BBBC048CellCycleDataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class ColonPolypsWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return MHist(root, split=split, transform=transform, download=download)
+
+
+class LiquidBasedCytologyWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return Hussain2019Dataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class HeartFailureWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return UPennHeart2018Dataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class ColorectalHistologyWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return ColorectalHistologyDataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class PatchCamelyonWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train" if train else "test"
+        return PatchCamelyonDataSet(
+            root, split=split, transform=transform, download=download
+        )
