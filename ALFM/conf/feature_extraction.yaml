@@ -43,7 +43,15 @@ hydra:
         pets,
         flowers,
         svhn,
-        places365
+        places365,
+        amyloid_beta,
+        blood_smear,
+        cell_cycle,
+        colon_polyps,
+        colorectal_histology,
+        heart_failure,
+        liquid_based_cytology,
+        patch_camelyon
       model:
         openclip_vit_B16,
         openclip_vit_L14,
