@@ -1,7 +1,6 @@
 """Wrapper module for a PyTorch model for use with PyTorch Lightning."""
 
 from typing import Tuple
-from typing import cast
 
 import numpy as np
 import pytorch_lightning as pl
@@ -28,7 +27,7 @@ class BackboneWrapper(pl.LightningModule):
 
     def predict_step(
         self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = 0
-    ) -> Tuple[NDArray[np.float32 | np.float16], NDArray[np.int64]]:
+    ) -> Tuple[NDArray[np.float32], NDArray[np.int64]]:
         """Prediction step for a batch of data.
 
         Args:
@@ -37,12 +36,11 @@ class BackboneWrapper(pl.LightningModule):
             dataloader_idx (int, optional): Index of the current dataloader.
 
         Returns:
-            Tuple[NDArray[np.float32 | np.float16], NDArray[np.int64]]: features
+            Tuple[NDArray[np.float32], NDArray[np.int64]]: features
                 and labels for the input batch.
         """
         x, y = batch
-        predictions = self.model(x).cpu().numpy()
+        features = self.model(x).float().cpu().numpy()
         labels = y.cpu().numpy().reshape(-1, 1).astype(np.int64)
-        features = cast(NDArray[np.float32 | np.float16], predictions)
 
         return features, labels
