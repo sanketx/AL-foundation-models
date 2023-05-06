@@ -24,6 +24,7 @@ trainer:
 
   # params for hydra.utils.instantiate
   _target_: pytorch_lightning.Trainer
+  accelerator: "gpu"
   devices: 1
   logger: false
 
@@ -67,7 +68,7 @@ hydra:
   run:
     dir: ""
   sweep:
-    dir: /tmp/multirun
+    dir: /tmp/$USER/multirun
   job:
     chdir: false
   output_subdir: null
