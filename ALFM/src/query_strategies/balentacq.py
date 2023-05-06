@@ -4,8 +4,9 @@ from typing import Any
 
 import numpy as np
 import torch
-from ALFM.src.query_strategies.base_query import BaseQuery
 from numpy.typing import NDArray
+
+from ALFM.src.query_strategies.base_query import BaseQuery
 
 
 class BalEntAcq(BaseQuery):
@@ -27,10 +28,7 @@ class BalEntAcq(BaseQuery):
             NDArray[np.float32]: MC samples from the model.
         """
         samples = np.stack(
-            [
-                self.model.get_probs(features, dropout=True)
-                for _ in range(self.M)
-            ]
+            [self.model.get_probs(features, dropout=True) for _ in range(self.M)]
         )
         return samples
 
@@ -46,9 +44,7 @@ class BalEntAcq(BaseQuery):
         return -np.sum(probs * np.log(probs + 1e-10), axis=-1)
 
     def _differential_entropy(
-        self,
-        alpha: NDArray[np.float32],
-        beta: NDArray[np.float32]
+        self, alpha: NDArray[np.float32], beta: NDArray[np.float32]
     ) -> NDArray[np.float32]:
         """Calculate the differential entropy of the given softmax probabilities.
 
@@ -63,9 +59,14 @@ class BalEntAcq(BaseQuery):
         beta = torch.tensor(beta)
 
         def beta_func(alpha, beta):
-            return torch.exp(
-                torch.lgamma(alpha) + torch.lgamma(beta) - torch.lgamma(alpha + beta)
-            ) + 1e-32
+            return (
+                torch.exp(
+                    torch.lgamma(alpha)
+                    + torch.lgamma(beta)
+                    - torch.lgamma(alpha + beta)
+                )
+                + 1e-32
+            )
 
         diff_entropy = (
             torch.log(beta_func(alpha + 1, beta))
@@ -76,7 +77,9 @@ class BalEntAcq(BaseQuery):
 
         return diff_entropy.numpy()
 
-    def _marginalized_posterior_entropy(self, probs: NDArray[np.float32]) -> NDArray[np.float32]:
+    def _marginalized_posterior_entropy(
+        self, probs: NDArray[np.float32]
+    ) -> NDArray[np.float32]:
         """Calculate the marginalized posterior entropy of the given softmax probabilities.
 
         Let P ~ Beta(alpha, beta) be the probabilities. Then...
