@@ -7,6 +7,7 @@ import torch
 from numpy.typing import NDArray
 
 from ALFM.src.query_strategies.base_query import BaseQuery
+from ALFM.src.query_strategies.entropy import Entropy
 
 
 class BalEntAcq(BaseQuery):
@@ -32,19 +33,10 @@ class BalEntAcq(BaseQuery):
         )
         return samples
 
-    def _shannon_entropy(self, probs: NDArray[np.float32]) -> NDArray[np.float32]:
-        """Calculate the Shannon entropy of the given softmax probabilities.
-
-        Args:
-            probs (NDArray[np.float32]): The probabilities.
-
-        Returns:
-            NDArray[np.float32]: The Shannon entropy.
-        """
-        return -np.sum(probs * np.log(probs + 1e-10), axis=-1)
-
     def _differential_entropy(
-        self, alpha: NDArray[np.float32], beta: NDArray[np.float32]
+        self,
+        alpha: NDArray[np.float32],
+        beta: NDArray[np.float32]
     ) -> NDArray[np.float32]:
         """Calculate the differential entropy of the given softmax probabilities.
 
@@ -58,21 +50,14 @@ class BalEntAcq(BaseQuery):
         alpha = torch.tensor(alpha)
         beta = torch.tensor(beta)
 
-        def beta_func(alpha, beta):
-            return (
-                torch.exp(
-                    torch.lgamma(alpha)
-                    + torch.lgamma(beta)
-                    - torch.lgamma(alpha + beta)
-                )
-                + 1e-32
-            )
+        def beta_func(x, y):
+            return torch.exp(torch.lgamma(x) + torch.lgamma(y) - torch.lgamma(x + y)) + 1e-32
 
         diff_entropy = (
             torch.log(beta_func(alpha + 1, beta))
             - alpha * torch.digamma(alpha + 1)
             - (beta - 1) * torch.digamma(beta)
-            + (alpha + beta - 1)
+            + (alpha + beta - 1) * torch.digamma(alpha + beta + 1)
         )
 
         return diff_entropy.numpy()
@@ -102,12 +87,12 @@ class BalEntAcq(BaseQuery):
         m = np.mean(probs, axis=0)  # E(P)
         sigma2 = np.var(probs, axis=0)  # Var(P)
 
-        alpha = m**2 * (1 - m) / (sigma2 + 1e-10) - m
+        alpha = m * m * (1 - m) / sigma2 - m
         beta = (1 / m - 1) * alpha
 
         diff_entropy = self._differential_entropy(alpha, beta)  # h(P+)
         mp_entropy = np.sum(m * diff_entropy, axis=-1)
-        mp_entropy += self._shannon_entropy(np.mean(probs, axis=0))
+        mp_entropy += Entropy.get_entropy(np.mean(probs, axis=0))
 
         return mp_entropy
 
@@ -134,7 +119,7 @@ class BalEntAcq(BaseQuery):
         mc_samples = self._get_mc_samples(self.features[unlabeled_indices])
 
         mp_entropy = self._marginalized_posterior_entropy(mc_samples)
-        H = self._shannon_entropy(np.mean(mc_samples, axis=0))
+        H = Entropy.get_entropy(np.mean(mc_samples, axis=0))
 
         balanced_entropy = (H + np.log(2)) / (mp_entropy + H)
         sign_idx = balanced_entropy < 0

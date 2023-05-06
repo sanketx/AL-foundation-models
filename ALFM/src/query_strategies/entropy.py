@@ -20,6 +20,18 @@ class Entropy(BaseQuery):
         super().__init__(**params)
         self.enable_dropout = enable_dropout
 
+    @staticmethod
+    def get_entropy(probs: NDArray[np.float32]) -> NDArray[np.float32]:
+        """Calculate the Shannon entropy of the given softmax probabilities.
+
+        Args:
+            probs (NDArray[np.float32]): The probabilities.
+
+        Returns:
+            NDArray[np.float32]: The Shannon entropy.
+        """
+        return -np.sum(probs * np.log(probs), axis=-1)
+
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
 
@@ -42,7 +54,7 @@ class Entropy(BaseQuery):
         softmax_probs = self.model.get_probs(
             self.features[unlabeled_indices], dropout=self.enable_dropout
         )
-        entropy = -np.sum(softmax_probs * np.log(softmax_probs), axis=1)
+        entropy = Entropy.get_entropy(softmax_probs)
         indices = np.argsort(entropy)[-num_samples:]
         mask[unlabeled_indices[indices]] = True
         return mask

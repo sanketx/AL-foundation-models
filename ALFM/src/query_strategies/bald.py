@@ -6,6 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ALFM.src.query_strategies.base_query import BaseQuery
+from ALFM.src.query_strategies.entropy import Entropy
 
 
 class BALD(BaseQuery):
@@ -24,23 +25,12 @@ class BALD(BaseQuery):
         """Get MC samples from the model.
 
         Returns:
-            NDArray[np.float32]: MC samples from the model.
+            NDArray[np.float32]: MC samples from the model (M x N x C).
         """
         samples = np.stack(
             [self.model.get_probs(features, dropout=True) for _ in range(self.M)]
         )
         return samples
-
-    def _shannon_entropy(self, probs: NDArray[np.float32]) -> NDArray[np.float32]:
-        """Calculate the Shannon entropy of the given softmax probabilities.
-
-        Args:
-            probs (NDArray[np.float32]): The probabilities.
-
-        Returns:
-            NDArray[np.float32]: The Shannon entropy.
-        """
-        return -np.sum(probs * np.log(probs + 1e-10), axis=-1)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -61,8 +51,8 @@ class BALD(BaseQuery):
 
         mc_samples = self._get_mc_samples(self.features[unlabeled_indices])
 
-        H = self._shannon_entropy(np.mean(mc_samples, axis=0))
-        E = np.mean(self._shannon_entropy(mc_samples), axis=0)
+        H = Entropy.get_entropy(np.mean(mc_samples, axis=0))
+        E = np.mean(Entropy.get_entropy(mc_samples), axis=0)
         mutual_information = H - E
 
         indices = np.argsort(mutual_information)[-num_samples:]
