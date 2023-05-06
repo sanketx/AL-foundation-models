@@ -117,7 +117,7 @@ hydra:
         blood_smear,
         cell_cycle,
         colon_polyps,
-        colorectal_histology,
+        colorectal_texture,
         heart_failure,
         liquid_based_cytology,
         patch_camelyon
