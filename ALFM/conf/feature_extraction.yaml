@@ -68,7 +68,7 @@ hydra:
   run:
     dir: ""
   sweep:
-    dir: /tmp/$USER/multirun
+    dir: /tmp/${oc.env:USER}/multirun
   job:
     chdir: false
   output_subdir: null
