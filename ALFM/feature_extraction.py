@@ -4,8 +4,6 @@ import hydra
 from dotenv import dotenv_values
 from omegaconf import DictConfig
 
-from ALFM.src.datasets.registry import DatasetType
-from ALFM.src.models.registry import ModelType
 from ALFM.src.run.feature_extraction import extract_features
 
 
@@ -25,18 +23,15 @@ def main(cfg: DictConfig) -> None:
     and model cache.
 
     Attributes:
-        dataset_type (DatasetType): Enum representing the type of dataset to use.
-        model_type (ModelType): Enum representing the type of pretrained model to use.
         dataset_dir (str): Path to the directory containing the dataset.
         model_dir (str): Path to the directory containing the model cache.
+        feature_dir (str): Path to the directory containing the features
 
     Raises:
-        ValueError: If an invalid model, dataset. or split is specified.
+        ValueError: If an invalid split is specified.
         AssertionError: If any of the 'DATASET_DIR', 'MODEL_CACHE_DIR', or
         'FEATURE_CACHE_DIR' environment variables are not set.
     """
-    dataset_type = DatasetType[cfg.dataset.name]
-    model_type = ModelType[cfg.model.name]
     dataloader = hydra.utils.instantiate(cfg.dataloader)
 
     env = dotenv_values()
@@ -60,27 +55,29 @@ def main(cfg: DictConfig) -> None:
         raise ValueError(
             f"Invalid split: '{cfg.split}'. Please specify a valid split: 'train' | 'test' | 'both'"
         )
+
     if cfg.split in ["train", "both"]:
         extract_features(
-            dataset_type,
+            cfg.dataset,
             True,
-            model_type,
+            cfg.model,
             dataset_dir,
             model_dir,
             feature_dir,
             dataloader,
-            hydra.utils.instantiate(cfg.trainer),
+            cfg.trainer,
         )
+
     if cfg.split in ["test", "both"]:
         extract_features(
-            dataset_type,
+            cfg.dataset,
             False,
-            model_type,
+            cfg.model,
             dataset_dir,
             model_dir,
             feature_dir,
             dataloader,
-            hydra.utils.instantiate(cfg.trainer),
+            cfg.trainer,
         )
 
 
