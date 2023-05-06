@@ -138,4 +138,9 @@ class Places365Wrapper:
         download: bool = False,
     ) -> VisionDataset:
         split = "train-standard" if train else "val"
+        if download:   # Check if image archive already extracted
+            try:
+                Places365(root, split, small=True, transform=transform, download=download)
+            except RuntimeError:
+                download = False
         return Places365(root, split, small=True, transform=transform, download=download)
