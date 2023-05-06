@@ -11,10 +11,10 @@ from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
 from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
 from bcv.datasets.pathology.mhist import MHist
 from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
+from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import DTD
 from torchvision.datasets import SVHN
-from torchvision.datasets import Dataset
 from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import Flowers102
 from torchvision.datasets import Food101
