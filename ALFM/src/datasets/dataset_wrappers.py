@@ -190,7 +190,11 @@ class AmyloidBetaUnbalancedWrapper:
     ) -> Dataset:
         split = "train+val" if train else "test"
         return AmyloidBeta2019Dataset(
-            root, split=split, transform=transform, download=download
+            root,
+            split=split,
+            transform=transform,
+            download=download,
+            balance_classes=None,
         )
 
 
