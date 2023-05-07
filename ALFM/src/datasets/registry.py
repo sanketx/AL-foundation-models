@@ -41,8 +41,8 @@ class DatasetType(Enum):
     flowers = Flowers102Wrapper()
     svhn = SVHNWrapper()
     places365 = Places365Wrapper()
-    amyloid_beta_bal = AmyloidBetaBalancedWrapper
-    amyloid_beta_unbal = AmyloidBetaUnbalancedWrapper
+    amyloid_beta_bal = AmyloidBetaBalancedWrapper()
+    amyloid_beta_unbal = AmyloidBetaUnbalancedWrapper()
     blood_smear = BloodSmearWrapper()
     cell_cycle = CellCycleWrapper()
     colon_polyps = ColonPolypsWrapper()
