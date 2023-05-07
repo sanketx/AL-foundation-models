@@ -152,19 +152,20 @@ class SharedMemoryWriter(pl.callbacks.BasePredictionWriter):
         feature_name, label_name = self._get_names()
 
         try:
-            feature_shm = SharedMemory(feature_name)
-        except FileNotFoundError:
             feature_shm = SharedMemory(
                 create=True,
                 size=4 * self.num_samples * self.num_features,
                 name=feature_name,
             )
+        except FileExistsError:
+            feature_shm = SharedMemory(feature_name)
+
         try:
-            label_shm = SharedMemory(label_name)
-        except FileNotFoundError:
             label_shm = SharedMemory(
                 create=True, size=8 * self.num_samples, name=label_name
             )
+        except FileExistsError:
+            label_shm = SharedMemory(label_name)
 
         return feature_shm, label_shm
 
