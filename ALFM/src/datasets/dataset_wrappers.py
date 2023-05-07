@@ -263,7 +263,7 @@ class PatchCamelyonWrapper:
         transform: Optional[transforms.Compose] = None,
         download: Optional[bool] = False,
     ) -> Dataset:
-        split = "train+val" if train else "test"
+        split = "train" if train else "test"
         return PatchCamelyonDataSet(
             root, split=split, transform=transform, download=download
         )
