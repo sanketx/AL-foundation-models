@@ -128,16 +128,20 @@ class SharedMemoryWriter(pl.callbacks.BasePredictionWriter):
         dataloader_idx: int,
     ) -> None:
         """Write predictions from each process to shared memory."""
-        self.local_rank = trainer.local_rank  # for cleanup
+        self.local_rank = trainer.local_rank  # for SHM cleanup later
         self.features[batch_indices] = predictions[0]
         self.labels[batch_indices] = predictions[1]
 
     def get_predictions(self) -> Tuple[NDArray[np.float32], NDArray[np.int64]]:
-        """Return detached copies of prediction vectors."""
+        """Return prediction vectors."""
         return self.features, self.labels
 
     def close(self) -> None:
-        """Release shared memory."""
+        """Release shared memory.
+
+        Only call this from the rank 0 process as multiple calls to close will
+        raise an exception.
+        """
         if self.local_rank == 0:
             self.feature_shm.close()
             self.feature_shm.unlink()
@@ -145,10 +149,23 @@ class SharedMemoryWriter(pl.callbacks.BasePredictionWriter):
             self.label_shm.unlink()
 
     def _get_names(self) -> Tuple[str, str]:
+        """Get a unique name for shared memory blocks.
+
+        Distributed Data Parallel creates copies of the parent process. We want all
+        instances of the SharedMemoryWriter to write to the same block of shared
+        memory. The parent and child processes all share the same process group ID.
+        This ID is used to create a common name for all the parallel processes.
+        """
         pgid = os.getpgid(0)
         return f"feature-{pgid}", f"label-{pgid}"
 
     def _get_shm(self) -> Tuple[SharedMemory, SharedMemory]:
+        """Get the shared memory blocks for the SharedMemoryWriter.
+
+        The first process to enter this section will attempt to allocate the block
+        of memory. If a process fails to create a block because it already exists,
+        it will simply return a handle to that block.
+        """
         feature_name, label_name = self._get_names()
 
         try:
@@ -170,6 +187,7 @@ class SharedMemoryWriter(pl.callbacks.BasePredictionWriter):
         return feature_shm, label_shm
 
     def _get_arrays(self) -> Tuple[NDArray[np.float32], NDArray[np.int64]]:
+        """Create NumPy arrays backed by a shared memory block."""
         labels: NDArray[np.int64] = np.ndarray(
             (self.num_samples, 1), dtype=np.int64, buffer=self.label_shm.buf
         )
