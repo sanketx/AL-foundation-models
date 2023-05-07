@@ -4,10 +4,13 @@
 from typing import Optional
 
 from bcv.datasets.cell_biology.bbbc.bbbc048_cell_cycle import BBBC048CellCycleDataset
+from bcv.datasets.cell_biology.iicbu2008_hela import IICBU2008HeLa
 from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataSet
 from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
+from bcv.datasets.cytology.pap_smear.plissiti_et_al_2018 import Plissiti2018Dataset
 from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
 from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
+from bcv.datasets.pathology.iicbu2008_lymphoma import IICBU2008Lymphoma
 from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
 from bcv.datasets.pathology.mhist import MHist
 from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
@@ -159,7 +162,25 @@ class Places365Wrapper:
         )
 
 
-class AmyloidBetaWrapper:
+class AmyloidBetaBalancedWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        return AmyloidBeta2019Dataset(
+            root,
+            split=split,
+            transform=transform,
+            download=download,
+            balance_classes="random_under",
+        )
+
+
+class AmyloidBetaUnbalancedWrapper:
     @staticmethod  # don't even ask
     def __call__(
         root: str,
@@ -213,7 +234,7 @@ class ColonPolypsWrapper:
         return MHist(root, split=split, transform=transform, download=download)
 
 
-class LiquidBasedCytologyWrapper:
+class ColorectalHistologyWrapper:
     @staticmethod  # don't even ask
     def __call__(
         root: str,
@@ -222,7 +243,7 @@ class LiquidBasedCytologyWrapper:
         download: Optional[bool] = False,
     ) -> Dataset:
         split = "train+val" if train else "test"
-        return Hussain2019Dataset(
+        return ColorectalHistologyDataset(
             root, split=split, transform=transform, download=download
         )
 
@@ -241,7 +262,7 @@ class HeartFailureWrapper:
         )
 
 
-class ColorectalHistologyWrapper:
+class IICBU2008HeLaWrapper:
     @staticmethod  # don't even ask
     def __call__(
         root: str,
@@ -250,9 +271,33 @@ class ColorectalHistologyWrapper:
         download: Optional[bool] = False,
     ) -> Dataset:
         split = "train+val" if train else "test"
-        return ColorectalHistologyDataset(
+        return IICBU2008HeLa(root, split=split, transform=transform, download=download)
+
+
+class IICBU2008LymphomaWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        return IICBU2008Lymphoma(
             root, split=split, transform=transform, download=download
         )
+
+
+class Pollen13KWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        raise NotImplementedError  # TODO
 
 
 class PatchCamelyonWrapper:
@@ -265,5 +310,33 @@ class PatchCamelyonWrapper:
     ) -> Dataset:
         split = "train" if train else "test"
         return PatchCamelyonDataSet(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class PapSmear2018Wrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        return Plissiti2018Dataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class PapSmear2019Wrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        return Hussain2019Dataset(
             root, split=split, transform=transform, download=download
         )
