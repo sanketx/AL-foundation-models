@@ -176,7 +176,7 @@ class AmyloidBetaBalancedWrapper:
             split=split,
             transform=transform,
             download=download,
-            balance_classes="random_under",
+            balance_classes="rand_under",
         )
 
 
