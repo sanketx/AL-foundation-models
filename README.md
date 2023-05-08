@@ -22,6 +22,11 @@ Specify command line overrides with `python -m ALFM.feature_extraction model=din
 
 Features will be saved to `FEATURE_CACHE_DIR` as specified in your `.env` file.
 
+For multi-GPU inference, make the following changes
+```
+export SLURM_JOB_NAME=interactive  # otherwise pytorch lightning won't launch new processes
+python -m ALFM.feature_extraction +trainer.strategy=ddp, trainer.devices=4
+```
 
 ### Active Learning experiments
 
