@@ -11,6 +11,7 @@ from ALFM.src.datasets.dataset_wrappers import BloodSmearWrapper
 from ALFM.src.datasets.dataset_wrappers import CellCycleWrapper
 from ALFM.src.datasets.dataset_wrappers import ColonPolypsWrapper
 from ALFM.src.datasets.dataset_wrappers import ColorectalHistologyWrapper
+from ALFM.src.datasets.dataset_wrappers import CUB200Wrapper
 from ALFM.src.datasets.dataset_wrappers import DiabeticRetinopathyWrapper
 from ALFM.src.datasets.dataset_wrappers import DTDWrapper
 from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
@@ -19,6 +20,7 @@ from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
 from ALFM.src.datasets.dataset_wrappers import HeartFailureWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008HeLaWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008LymphomaWrapper
+from ALFM.src.datasets.dataset_wrappers import INaturalistWrapper
 from ALFM.src.datasets.dataset_wrappers import MalariaDatasetWrapper
 from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
 from ALFM.src.datasets.dataset_wrappers import PapSmear2018Wrapper
@@ -43,6 +45,8 @@ class DatasetType(Enum):
     flowers = Flowers102Wrapper()
     svhn = SVHNWrapper()
     places365 = Places365Wrapper()
+    cub200 = CUB200Wrapper()
+    inat2021 = INaturalistWrapper()
     amyloid_beta_bal = AmyloidBetaBalancedWrapper()
     amyloid_beta_unbal = AmyloidBetaUnbalancedWrapper()
     blood_smear = BloodSmearWrapper()
