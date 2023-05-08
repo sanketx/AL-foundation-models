@@ -12,6 +12,7 @@ from ALFM.src.query_strategies.margins import Margins
 from ALFM.src.query_strategies.powerbald import PowerBALD
 from ALFM.src.query_strategies.probcover import ProbCover
 from ALFM.src.query_strategies.random import Random
+from ALFM.src.query_strategies.typiclust import Typiclust
 from ALFM.src.query_strategies.uncertainty import Uncertainty
 
 
@@ -29,3 +30,4 @@ class QueryType(Enum):
     badge = BADGE
     probcover = ProbCover
     alfamix = AlfaMix
+    typiclust = Typiclust
