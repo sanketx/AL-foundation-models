@@ -3,9 +3,11 @@
 
 from typing import Optional
 
+from bcv.datasets.biology.icpr2020_pollen import ICPR2020Pollen
 from bcv.datasets.cell_biology.bbbc.bbbc048_cell_cycle import BBBC048CellCycleDataset
 from bcv.datasets.cell_biology.iicbu2008_hela import IICBU2008HeLa
 from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataSet
+from bcv.datasets.cytology.blood_smear.malaria import MalariaDataset
 from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
 from bcv.datasets.cytology.pap_smear.plissiti_et_al_2018 import Plissiti2018Dataset
 from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
@@ -292,7 +294,7 @@ class IICBU2008LymphomaWrapper:
         )
 
 
-class Pollen13KWrapper:
+class MalariaDatasetWrapper:
     @staticmethod  # don't even ask
     def __call__(
         root: str,
@@ -301,7 +303,19 @@ class Pollen13KWrapper:
         download: Optional[bool] = False,
     ) -> Dataset:
         split = "train+val" if train else "test"
-        raise NotImplementedError  # TODO
+        return MalariaDataset(root, split=split, transform=transform, download=download)
+
+
+class PollenWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        raise ICPR2020Pollen(root, split=split, transform=transform, download=download)
 
 
 class PatchCamelyonWrapper:

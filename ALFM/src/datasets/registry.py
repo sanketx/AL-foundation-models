@@ -18,12 +18,13 @@ from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
 from ALFM.src.datasets.dataset_wrappers import HeartFailureWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008HeLaWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008LymphomaWrapper
+from ALFM.src.datasets.dataset_wrappers import MalariaDatasetWrapper
 from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
 from ALFM.src.datasets.dataset_wrappers import PapSmear2018Wrapper
 from ALFM.src.datasets.dataset_wrappers import PapSmear2019Wrapper
 from ALFM.src.datasets.dataset_wrappers import PatchCamelyonWrapper
 from ALFM.src.datasets.dataset_wrappers import Places365Wrapper
-from ALFM.src.datasets.dataset_wrappers import Pollen13KWrapper
+from ALFM.src.datasets.dataset_wrappers import PollenWrapper
 from ALFM.src.datasets.dataset_wrappers import StanfordCarsWrapper
 from ALFM.src.datasets.dataset_wrappers import SVHNWrapper
 
@@ -50,7 +51,8 @@ class DatasetType(Enum):
     heart_failure = HeartFailureWrapper()
     iicbu_hela = IICBU2008HeLaWrapper()
     iicbu_lymphoma = IICBU2008LymphomaWrapper()
+    malaria = MalariaDatasetWrapper()
     pap_smear_2018 = PapSmear2018Wrapper()
     pap_smear_2019 = PapSmear2019Wrapper()
     patch_camelyon = PatchCamelyonWrapper()
-    pollen13k = Pollen13KWrapper()
+    pollen = PollenWrapper()
