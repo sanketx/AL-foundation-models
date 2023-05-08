@@ -46,6 +46,7 @@ dataloader:
   batch_size: 4096
   num_workers: 1
   shuffle: false
+  pin_memory: true
 
   # params for hydra.utils.instantiate
   _target_: torch.utils.data.DataLoader
