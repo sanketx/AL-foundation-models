@@ -1,2 +1,5 @@
 name: typiclust
-params: {}
+params:
+  min_size: 5
+  max_clusters: 500
+  knn: 20
