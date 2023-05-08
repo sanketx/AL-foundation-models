@@ -1,13 +1,11 @@
 """ALFA-Mix query strategy."""
 
-import sys
 from typing import Any
 
 import faiss
 import numpy as np
 import torch
 import torch.nn.functional as F
-from numpy.testing import verbose
 from numpy.typing import NDArray
 from rich.progress import track
 
@@ -26,13 +24,11 @@ class AlfaMix(BaseQuery):
 
     def _get_candidates(
         self,
-        z_u: NDArray[np.float32],
-        z_star: NDArray[np.float32],
-        y_star: NDArray[np.int64],
-    ) -> NDArray[np.int64]:
-        z_u = torch.tensor(z_u, requires_grad=True)  # type: ignore[assignment]
-        z_star = torch.from_numpy(z_star)  # type: ignore[assignment]
-        y_star = torch.from_numpy(y_star)  # type: ignore[assignment]
+        z_u: torch.Tensor,
+        z_star: torch.Tensor,
+        y_star: torch.Tensor,
+    ) -> torch.Tensor:
+        z_u.requires_grad = True
         candidates = torch.zeros_like(y_star, dtype=torch.bool)
 
         logits = self.model.classifier.linear(z_u)
@@ -60,22 +56,22 @@ class AlfaMix(BaseQuery):
             mismatch_idx = torch.nonzero(y_pred != ys).flatten()
             candidates[current[mismatch_idx]] = True
 
-        return torch.nonzero(candidates).flatten().numpy()
+        return torch.nonzero(candidates).flatten()
 
     def _cluster_candidates(
         self, features: NDArray[np.float32], num_samples: int
-    ) -> NDArray[np.int64]:
-        kmeans = faiss.Kmeans(features.shape[1], int(num_samples), niter=300)
+    ) -> torch.Tensor:
+        kmeans = faiss.Kmeans(features.shape[1], num_samples, niter=300)
         init_idx = kmeans_plus_plus_init(features, num_samples)
-        val = kmeans.train(features, init_centroids=features[init_idx])
-        print("KMEANS: ", val)
+        kmeans.train(features, init_centroids=features[init_idx])
 
         sq_dist, cluster_idx = kmeans.index.search(features, 1)
-        sq_dist, cluster_idx = sq_dist.ravel(), cluster_idx.ravel()
-        selected = np.zeros(num_samples, dtype=np.int64)
+        sq_dist = torch.from_numpy(sq_dist).ravel()
+        cluster_idx = torch.from_numpy(cluster_idx).ravel()
+        selected = torch.zeros(num_samples, dtype=torch.int64)
 
         for i in range(num_samples):
-            idx = np.flatnonzero(cluster_idx == i)  # id of all points in the cluster
+            idx = torch.nonzero(cluster_idx == i).ravel()
             min_idx = sq_dist[idx].argmin()  # point closest to the centroid
             selected[i] = idx[min_idx]  # add that id to the selected set
 
@@ -99,10 +95,10 @@ class AlfaMix(BaseQuery):
 
         probs, embedding = self.model.get_probs_and_embedding(self.features)
         z_star, z_u = embedding[self.labeled_pool], embedding[~self.labeled_pool]
-        y_star = probs[~self.labeled_pool].argmax(axis=1)
+        y_star = probs[~self.labeled_pool].argmax(dim=1)
 
         candidates = self._get_candidates(z_u, z_star, y_star)
-        selected = self._cluster_candidates(z_u[candidates], num_samples)
+        selected = self._cluster_candidates(z_u[candidates].numpy(), int(num_samples))
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
