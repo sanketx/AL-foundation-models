@@ -4,6 +4,7 @@ import logging
 import warnings
 from typing import Dict
 from typing import Tuple
+from typing import cast
 
 import numpy as np
 import torch
@@ -12,6 +13,7 @@ from numpy import bool_
 from numpy.typing import NDArray
 from omegaconf import DictConfig
 
+from ALFM.src.classifiers.base_classifier import BaseClassifier
 from ALFM.src.classifiers.registry import ClassifierType
 from ALFM.src.datasets.al_dataset import ALDataset
 
@@ -34,6 +36,7 @@ class ClassifierWrapper:
         self.classifier = classifier_type.value(
             self.num_features, num_classes=self.num_classes, **classifier_params
         )
+        self.classifier = cast(BaseClassifier, self.classifier)
 
     def fit(
         self,
@@ -68,30 +71,30 @@ class ClassifierWrapper:
 
     def get_probs(
         self, features: NDArray[np.float32], dropout: bool = False
-    ) -> NDArray[np.float32]:
+    ) -> torch.Tensor:
         self.classifier.set_pred_mode("probs")
         return self._predict(features, dropout)["probs"]
 
     def get_embedding(
         self, features: NDArray[np.float32], dropout: bool = False
-    ) -> NDArray[np.float32]:
+    ) -> torch.Tensor:
         self.classifier.set_pred_mode("embed")
         return self._predict(features, dropout)["embed"]
 
     def get_probs_and_embedding(
         self, features: NDArray[np.float32], dropout: bool = False
-    ) -> Tuple[NDArray[np.float32], NDArray[np.float32]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         self.classifier.set_pred_mode(["probs", "embed"])
         preds = self._predict(features, dropout)
         return preds["probs"], preds["embed"]
 
     def _predict(
         self, features: NDArray[np.float32], dropout: bool
-    ) -> Dict[str, NDArray[np.float32]]:
+    ) -> Dict[str, torch.Tensor]:
         dataset = ALDataset(features, np.zeros(len(features), dtype=np.int64))
         self.classifier.set_dropout(dropout)
 
         preds = self.trainer.predict(
             self.classifier, self.dataloader(dataset), ckpt_path="best"
         )
-        return {key: np.concatenate([p[key] for p in preds]) for key in preds[0]}
+        return {key: torch.cat([p[key] for p in preds]) for key in preds[0]}
