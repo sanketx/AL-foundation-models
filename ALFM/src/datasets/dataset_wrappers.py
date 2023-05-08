@@ -315,7 +315,7 @@ class PollenWrapper:
         download: Optional[bool] = False,
     ) -> Dataset:
         split = "train+val" if train else "test"
-        raise ICPR2020Pollen(root, split=split, transform=transform, download=download)
+        return ICPR2020Pollen(root, split=split, transform=transform, download=download)
 
 
 class PatchCamelyonWrapper:
