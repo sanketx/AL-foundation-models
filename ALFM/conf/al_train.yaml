@@ -126,6 +126,8 @@ hydra:
   # temporarily disable logging
   run:
     dir: ""
+  sweep:
+    dir: /tmp/${oc.env:USER}/multirun
   job:
     chdir: false
   output_subdir: null
