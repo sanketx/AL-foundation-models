@@ -11,6 +11,7 @@ from ALFM.src.datasets.dataset_wrappers import BloodSmearWrapper
 from ALFM.src.datasets.dataset_wrappers import CellCycleWrapper
 from ALFM.src.datasets.dataset_wrappers import ColonPolypsWrapper
 from ALFM.src.datasets.dataset_wrappers import ColorectalHistologyWrapper
+from ALFM.src.datasets.dataset_wrappers import DiabeticRetinopathyWrapper
 from ALFM.src.datasets.dataset_wrappers import DTDWrapper
 from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
 from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
@@ -48,6 +49,7 @@ class DatasetType(Enum):
     cell_cycle = CellCycleWrapper()
     colon_polyps = ColonPolypsWrapper()
     colorectal_histology = ColorectalHistologyWrapper()
+    diabetic_retinopathy = DiabeticRetinopathyWrapper()
     heart_failure = HeartFailureWrapper()
     iicbu_hela = IICBU2008HeLaWrapper()
     iicbu_lymphoma = IICBU2008LymphomaWrapper()
