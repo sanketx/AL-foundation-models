@@ -8,13 +8,14 @@ from typing import Tuple
 from typing import cast
 
 import torch
+import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from torch import nn
 from torch.optim import Optimizer
 from torchmetrics import Metric
 
 
-PredType = Literal["probs", "embed"]
+PredType = Literal["probs", "embed", "grad"]
 
 
 class BaseClassifier(LightningModule):
@@ -106,8 +107,17 @@ class BaseClassifier(LightningModule):
 
         self.dropout.train(self._enable_dropout)
         x = self.dropout(x)  # does nothing if dropout is disabled
-
         embedding = self.feature_extractor(x)
-        probs = self.linear(embedding).softmax(dim=1)
-        tensors = {"embed": embedding, "probs": probs}
-        return {k: tensors[k].float().cpu() for k in self._pred_mode}
+
+        with torch.inference_mode(False), torch.autocast("cuda", enabled=False):
+            embedding = embedding.clone().requires_grad_()
+            logits = self.linear(embedding)
+            probs = logits.softmax(dim=1)
+            tensors = {"embed": embedding, "probs": probs}
+
+            if "grad" in self._pred_mode:
+                loss = F.cross_entropy(logits, logits.argmax(dim=1), reduction="sum")
+                grad = torch.autograd.grad(loss, embedding)[0]
+                tensors["grad"] = grad
+
+        return {k: tensors[k].detach().float().cpu() for k in self._pred_mode}
