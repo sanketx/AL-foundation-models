@@ -1,13 +1,16 @@
 """Typiclust query strategy."""
 
+import sys
 from typing import Any
-from typing import Tuple
 
+import faiss
 import numpy as np
 import pandas as pd
-from faiss import pairwise_distances
 from numpy.typing import NDArray
+from pandas._libs.tslibs import vectorized
+from rich.progress import track
 
+from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
 from ALFM.src.query_strategies.base_query import BaseQuery
 
 
@@ -19,57 +22,65 @@ class Typiclust(BaseQuery):
     Code aapted from https://github.com/avihu111/TypiClust.
     """
 
-    MIN_CLUSTER_SIZE = 5
-    MAX_NUM_CLUSTERS = 500
-    K = 20
-
-    def __init__(self, **params: Any) -> None:
+    def __init__(
+        self, knn: int, min_size: int, max_clusters: int, **params: Any
+    ) -> None:
         """Call the superclass constructor."""
         super().__init__(**params)
+        self.knn = knn
+        self.min_size = min_size
+        self.max_clusters = max_clusters
 
-    def get_nn(
+    def _cluster_features(
         self, features: NDArray[np.float32], k: int
-    ) -> Tuple(NDArray[np.float32], NDArray[np.int64]):
-        """Get the k nearest neighbors of each point in features."""
-        distances = pairwise_distances(features, features)
-        indices = np.argsort(distances, axis=1)[:, 1 : k + 1]
-        distances = distances[np.arange(distances.shape[0])[:, None], indices]
-        return distances, indices
+    ) -> NDArray[np.int64]:
+        kmeans = faiss.Kmeans(features.shape[1], k, niter=100, gpu=1)
+        init_idx = kmeans_plus_plus_init(features, k)
+        kmeans.train(features, init_centroids=features[init_idx])
+        _, clust_labels = kmeans.index.search(features, 1)
+        return clust_labels.ravel()
 
-    def get_mean_nn_dist(
-        self, features: NDArray[np.float32], k: int, return_indices: bool = False
-    ) -> NDArray[np.float32]:
-        """Get the mean distance to the k nearest neighbors of each point in features."""
-        distances, indices = self.get_nn(features, k)
-        mean_distances = np.mean(distances, axis=1)
-        if return_indices:
-            return mean_distances, indices
-        return mean_distances
+    def _typical_vec_id(self, features: NDArray[np.float32], knn: int) -> int:
+        index = faiss.IndexFlatL2(features.shape[1])
+        index.add(features)
+        distances = index.search(features, knn + 1)[0].mean(axis=1)
+        return distances.argmin()
 
-    def compute_typicality(
-        self, features: NDArray[np.float32], k: int
-    ) -> NDArray[np.float32]:
-        """Compute the typicality of each point in features."""
-        mean_distances = self.get_mean_nn_dist(features, k)
-        typicality = 1 / (mean_distances + 1e-5)
-        return typicality
-
-    def fast_kmeans(
+    def _select_points(
         self,
         features: NDArray[np.float32],
-        num_clusters: int,
-    ):
-        pass
-
-    def init_clusters(
-        self,
+        clust_labels: NDArray[np.int64],
         num_samples: int,
-    ):
-        vectors = self.model.get_embedding(self.features)
-        num_clusters = min(
-            len(vectors[self.labeled_pool]) + num_samples, self.MAX_NUM_CLUSTERS
-        )
-        self.clusters = self.fast_kmeans(vectors, num_clusters)
+    ) -> NDArray[np.int64]:
+        cluster_ids, cluster_sizes = np.unique(clust_labels, return_counts=True)
+        num_clusters = len(cluster_ids)
+        count = np.bincount(clust_labels[self.labeled_pool], minlength=num_clusters)
+
+        cluster_df = pd.DataFrame(
+            dict(
+                cluster_id=cluster_ids,
+                cluster_size=cluster_sizes,
+                existing_count=count,
+            )
+        ).sort_values(["existing_count", "cluster_size"], ascending=[True, False])
+        cluster_df = cluster_df[cluster_df.cluster_size > self.min_size]
+
+        clust_labels[self.labeled_pool] = -1  # mark these as seen
+        num_clusters = len(cluster_df)  # update after removing small clusters
+        selected = []
+
+        for i in track(range(num_samples), description="[green]Typiclust query"):
+            idx = cluster_df.cluster_id.values[i % num_clusters]
+            indices = np.flatnonzero(clust_labels == idx)
+            vectors = features[indices]
+
+            knn = min(self.knn, len(indices) // 2)
+            vec_id = self._typical_vec_id(vectors, knn)
+
+            selected.append(indices[vec_id])
+            clust_labels[indices[vec_id]] = -1
+
+        return np.array(selected)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -80,48 +91,20 @@ class Typiclust(BaseQuery):
         Returns:
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
-        if self.clusters is None:
-            self.init_clusters(num_samples)
+        labeled_indices = np.flatnonzero(self.labeled_pool)
+        unlabeled_indices = np.flatnonzero(~self.labeled_pool)
+
+        if num_samples > len(unlabeled_indices):
+            raise ValueError(
+                f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
+            )
+
+        num_clusters = min(num_samples + len(labeled_indices), self.max_clusters)
+        vectors = self.model.get_embedding(self.features).numpy()
+
+        clust_labels = self._cluster_features(vectors, int(num_clusters))
+        selected = self._select_points(vectors, clust_labels, num_samples)
 
         mask = np.zeros(len(self.features), dtype=bool)
-        labeled_indices = np.flatnonzero(self.labeled_pool)
-        labels = np.copy(self.clusters)
-        existing_indices = np.arange(len(labeled_indices))
-
-        cluster_ids, cluster_sizes = np.unique(labels, return_counts=True)
-        cluster_labeled_counts = np.bincount(
-            labels[existing_indices], minlength=len(cluster_ids)
-        )
-
-        clusters_df = pd.DataFrame(
-            {
-                "cluster_id": cluster_ids,
-                "cluster_size": cluster_sizes,
-                "existing_count": cluster_labeled_counts,
-                "neg_cluster_size": -1 * cluster_sizes,
-            }
-        )
-        clusters_df = clusters_df[clusters_df.cluster_size > self.MIN_CLUSTER_SIZE]
-        clusters_df = clusters_df.sort_values(["existing_count", "neg_cluster_size"])
-        labels[existing_indices] = -1
-
-        selected = []
-        for i in range(num_samples):
-            cluster = clusters_df.iloc[i % len(clusters_df)].cluster_id
-            cluster_indices = np.flatnonzero(labels == cluster)
-            feats = self.features[cluster_indices]
-            typicality = self.compute_typicality(
-                feats, min(self.K, len(cluster_indices) // 2)
-            )
-            idx = cluster_indices[np.argmax(typicality)]
-            selected.append(idx)
-            labels[idx] = -1
-
-        selected = np.array(selected)
-        assert (
-            len(selected) == num_samples
-        ), f"Expected {num_samples} samples, got {len(selected)}"
-        assert (
-            len(np.intersect1d(selected, existing_indices)) == 0
-        ), "Selected samples must be unlabeled"
         mask[selected] = True
+        return mask
