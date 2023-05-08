@@ -87,7 +87,7 @@ class BADGE(BaseQuery):
         one_hot = F.one_hot(labels, num_classes=probs.shape[1])
         delta = probs - one_hot
 
-        centroids = self._select_samples(vectors, delta, num_samples)
+        centroids = self._select_samples(vectors.cuda(), delta.cuda(), num_samples)
 
         mask = np.zeros(len(self.features), dtype=bool)
         unlabeled_indices = np.flatnonzero(~self.labeled_pool)
