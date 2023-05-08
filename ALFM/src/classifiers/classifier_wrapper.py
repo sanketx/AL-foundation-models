@@ -88,6 +88,13 @@ class ClassifierWrapper:
         preds = self._predict(features, dropout)
         return preds["probs"], preds["embed"]
 
+    def get_alpha_grad(
+        self, features: NDArray[np.float32], dropout: bool = False
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        self.classifier.set_pred_mode(["probs", "embed", "grad"])
+        preds = self._predict(features, dropout)
+        return preds["probs"], preds["embed"], preds["grad"]
+
     def _predict(
         self, features: NDArray[np.float32], dropout: bool
     ) -> Dict[str, torch.Tensor]:
