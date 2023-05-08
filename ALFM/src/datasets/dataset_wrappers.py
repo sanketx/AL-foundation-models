@@ -10,6 +10,7 @@ from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataS
 from bcv.datasets.cytology.blood_smear.malaria import MalariaDataset
 from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
 from bcv.datasets.cytology.pap_smear.plissiti_et_al_2018 import Plissiti2018Dataset
+from bcv.datasets.fundoscopy.diabetic_retinopathy import DiabeticRetinopathyDataset
 from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
 from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
 from bcv.datasets.pathology.iicbu2008_lymphoma import IICBU2008Lymphoma
@@ -250,6 +251,20 @@ class ColorectalHistologyWrapper:
     ) -> Dataset:
         split = "train+val" if train else "test"
         return ColorectalHistologyDataset(
+            root, split=split, transform=transform, download=download
+        )
+
+
+class DiabeticRetinopathyWrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: Optional[bool] = False,
+    ) -> Dataset:
+        split = "train+val" if train else "test"
+        return DiabeticRetinopathyDataset(
             root, split=split, transform=transform, download=download
         )
 

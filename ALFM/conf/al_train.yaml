@@ -90,7 +90,8 @@ hydra:
         coreset,
         bald,
         powerbald,
-        badge
+        badge,
+        alfamix
       init_strategy:
         random_init
       model:
