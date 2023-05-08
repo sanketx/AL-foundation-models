@@ -19,6 +19,7 @@ show_error_context = true
 module = [
     "h5py",
     "faiss",
+    "pandas",
     "open_clip",
     "torchvision",
     "torchvision.datasets"
