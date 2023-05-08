@@ -31,7 +31,7 @@ class Entropy(BaseQuery):
         Returns:
             torch.Tensor: The Shannon entropy.
         """
-        return -(probs * np.log(probs)).sum(axis=-1)
+        return -(probs * torch.log(probs)).sum(dim=-1)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
