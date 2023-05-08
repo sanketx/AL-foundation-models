@@ -17,6 +17,7 @@ from bcv.datasets.pathology.iicbu2008_lymphoma import IICBU2008Lymphoma
 from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
 from bcv.datasets.pathology.mhist import MHist
 from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
+
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import DTD
@@ -28,6 +29,9 @@ from torchvision.datasets import OxfordIIITPet
 from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
 from torchvision.datasets import VisionDataset
+
+from ALFM.src.datasets.utils import Cub2011
+from ALFM.src.datasets.utils import INaturalist2021
 
 
 class Food101Wrapper:
@@ -131,7 +135,14 @@ class SVHNWrapper:
 
 
 class CUB200Wrapper:
-    pass
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = False,
+    ) -> VisionDataset:
+        return Cub2011(root, train, transform=transform, download=download)
 
 
 class ImageNetWrapper:
@@ -140,8 +151,15 @@ class ImageNetWrapper:
 
 
 class INaturalistWrapper:
-    # TO-DO: 2018, 2021 versions
-    pass
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = False,
+    ) -> VisionDataset:
+        split = "2021_train" if train else "2021_test"
+        return INaturalist2021(root, split, transform=transform, download=download)
 
 
 class Places365Wrapper:
