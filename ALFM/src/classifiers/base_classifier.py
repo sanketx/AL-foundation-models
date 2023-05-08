@@ -110,4 +110,4 @@ class BaseClassifier(LightningModule):
         embedding = self.feature_extractor(x)
         probs = self.linear(embedding).softmax(dim=1)
         tensors = {"embed": embedding, "probs": probs}
-        return {k: tensors[k].float().cpu().numpy() for k in self._pred_mode}
+        return {k: tensors[k].float().cpu() for k in self._pred_mode}
