@@ -3,6 +3,7 @@
 from typing import Any
 
 import numpy as np
+import torch
 from numpy.typing import NDArray
 
 from ALFM.src.query_strategies.base_query import BaseQuery
@@ -21,13 +22,13 @@ class BALD(BaseQuery):
         super().__init__(**params)
         self.M = M
 
-    def _get_mc_samples(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+    def _get_mc_samples(self, features: NDArray[np.float32]) -> torch.Tensor:
         """Get MC samples from the model.
 
         Returns:
             NDArray[np.float32]: MC samples from the model (M x N x C).
         """
-        samples = np.stack(
+        samples = torch.stack(
             [self.model.get_probs(features, dropout=True) for _ in range(self.M)]
         )
         return samples
@@ -51,10 +52,10 @@ class BALD(BaseQuery):
 
         mc_samples = self._get_mc_samples(self.features[unlabeled_indices])
 
-        H = Entropy.get_entropy(np.mean(mc_samples, axis=0))
-        E = np.mean(Entropy.get_entropy(mc_samples), axis=0)
+        H = Entropy.get_entropy(mc_samples.mean(dim=0))
+        E = Entropy.get_entropy(mc_samples).mean(dim=0)
         mutual_information = H - E
 
-        indices = np.argsort(mutual_information)[-num_samples:]
+        indices = mutual_information.argsort()[-num_samples:]
         mask[unlabeled_indices[indices]] = True
         return mask

@@ -3,10 +3,11 @@
 from typing import Any
 
 import numpy as np
-from faiss import pairwise_distances
+import torch
 from numpy.typing import NDArray
 from rich.progress import track
 
+from ALFM.src.clustering.kmeans import faiss_pd
 from ALFM.src.query_strategies.base_query import BaseQuery
 
 
@@ -46,20 +47,20 @@ class Coreset(BaseQuery):
             )
 
         # pairwise_distances in FAISS returns the squared L2 distance
-        p_dist = pairwise_distances(labeled_vectors, unlabeled_vectors)
-        min_dist = p_dist.min(axis=0)  # distance of each UL point to the nearest center
+        p_dist = faiss_pd(labeled_vectors, unlabeled_vectors)
+        min_dist = p_dist.min(dim=0)[0]  # distance of UL points to the nearest center
 
         new_batch = []
 
         for _ in track(range(num_samples), description="[green]Core-Set query"):
-            next_center = np.argmax(min_dist)
+            next_center = min_dist.argmax()
             new_batch.append(next_center)
 
-            new_dist = pairwise_distances(
-                unlabeled_vectors[next_center].reshape(1, -1),
+            new_dist = faiss_pd(
+                unlabeled_vectors[next_center].view(1, -1),
                 unlabeled_vectors,
             )
-            min_dist = np.minimum(min_dist, new_dist.ravel())
+            min_dist = torch.minimum(min_dist, new_dist.ravel())
 
         mask = np.zeros(len(vectors), dtype=bool)
         unlabeled_indices = np.flatnonzero(~self.labeled_pool)

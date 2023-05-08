@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
@@ -75,19 +76,16 @@ class BADGE(BaseQuery):
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
         unlabeled_features = self.features[~self.labeled_pool]
-        probs, embedding = self.model.get_probs_and_embedding(unlabeled_features)
-        labels = np.argmax(probs, axis=1)
-
-        one_hot = np.zeros_like(probs)
-        one_hot[np.arange(len(one_hot)), labels] = 1
-
-        delta = torch.from_numpy(probs - one_hot)
-        vectors = torch.from_numpy(embedding)
 
         if num_samples > len(unlabeled_features):
             raise ValueError(
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_features)})"
             )
+
+        probs, vectors = self.model.get_probs_and_embedding(unlabeled_features)
+        labels = probs.argmax(dim=1)
+        one_hot = F.one_hot(labels, num_classes=probs.shape[1])
+        delta = probs - one_hot
 
         centroids = self._select_samples(vectors, delta, num_samples)
 

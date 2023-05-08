@@ -3,6 +3,7 @@
 from typing import Any
 
 import numpy as np
+import torch
 from numpy.typing import NDArray
 
 from ALFM.src.query_strategies.base_query import BaseQuery
@@ -23,13 +24,13 @@ class PowerBALD(BaseQuery):
         super().__init__(**params)
         self.M = M
 
-    def _get_mc_samples(self, features: NDArray[np.float32]) -> NDArray[np.float32]:
+    def _get_mc_samples(self, features: NDArray[np.float32]) -> torch.Tensor:
         """Get MC samples from the model.
 
         Returns:
             NDArray[np.float32]: MC samples from the model.
         """
-        samples = np.stack(
+        samples = torch.stack(
             [self.model.get_probs(features, dropout=True) for _ in range(self.M)]
         )
         return samples
@@ -53,14 +54,14 @@ class PowerBALD(BaseQuery):
 
         mc_samples = self._get_mc_samples(self.features[unlabeled_indices])
 
-        H = Entropy.get_entropy(np.mean(mc_samples, axis=0))
-        E = np.mean(Entropy.get_entropy(mc_samples), axis=0)
+        H = Entropy.get_entropy(mc_samples.mean(dim=0))
+        E = Entropy.get_entropy(mc_samples).mean(dim=0)
         s = H - E
 
         # sample the Gumbel distribution
         gumbel_samples = np.random.gumbel(0.0, 1.0, size=len(s))
-        power_s = np.log(s) + gumbel_samples
+        power_s = torch.log(s) + torch.from_numpy(gumbel_samples)
 
-        indices = np.argsort(power_s)[-num_samples:]
+        indices = power_s.argsort()[-num_samples:]
         mask[unlabeled_indices[indices]] = True
         return mask

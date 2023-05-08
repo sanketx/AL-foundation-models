@@ -3,6 +3,7 @@
 from typing import Any
 
 import numpy as np
+import torch
 from numpy.typing import NDArray
 
 from ALFM.src.query_strategies.base_query import BaseQuery
@@ -21,16 +22,16 @@ class Entropy(BaseQuery):
         self.enable_dropout = enable_dropout
 
     @staticmethod
-    def get_entropy(probs: NDArray[np.float32]) -> NDArray[np.float32]:
+    def get_entropy(probs: torch.Tensor) -> torch.Tensor:
         """Calculate the Shannon entropy of the given softmax probabilities.
 
         Args:
-            probs (NDArray[np.float32]): The probabilities.
+            probs (torch.Tensor): The probabilities.
 
         Returns:
-            NDArray[np.float32]: The Shannon entropy.
+            torch.Tensor: The Shannon entropy.
         """
-        return -np.sum(probs * np.log(probs), axis=-1)
+        return -(probs * np.log(probs)).sum(axis=-1)
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.

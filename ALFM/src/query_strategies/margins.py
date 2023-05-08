@@ -42,8 +42,8 @@ class Margins(BaseQuery):
         softmax_probs = self.model.get_probs(
             self.features[unlabeled_indices], dropout=self.enable_dropout
         )
-        sorted_probs = np.sort(softmax_probs, axis=1)
+        sorted_probs = softmax_probs.sort(dim=1)[0]
         margins = sorted_probs[:, -1] - sorted_probs[:, -2]
-        indices = np.argsort(margins)[:num_samples]
+        indices = margins.argsort()[:num_samples]
         mask[unlabeled_indices[indices]] = True
         return mask

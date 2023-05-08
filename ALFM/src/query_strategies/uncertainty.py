@@ -41,7 +41,7 @@ class Uncertainty(BaseQuery):
         softmax_probs = self.model.get_probs(
             self.features[unlabeled_indices], dropout=self.enable_dropout
         )
-        max_probs = np.max(softmax_probs, axis=1)
-        indices = np.argsort(max_probs)[:num_samples]
+        max_probs = softmax_probs.max(dim=1)[0]
+        indices = max_probs.argsort()[:num_samples]
         mask[unlabeled_indices[indices]] = True
         return mask
