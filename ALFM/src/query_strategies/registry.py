@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+from ALFM.src.query_strategies.alfamix import AlfaMix
 from ALFM.src.query_strategies.badge import BADGE
 from ALFM.src.query_strategies.bald import BALD
 from ALFM.src.query_strategies.balentacq import BalEntAcq
@@ -27,3 +28,4 @@ class QueryType(Enum):
     balentacq = BalEntAcq
     badge = BADGE
     probcover = ProbCover
+    alfamix = AlfaMix
