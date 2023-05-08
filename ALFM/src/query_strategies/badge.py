@@ -48,7 +48,7 @@ class BADGE(BaseQuery):
         # Compute the squared distance from all points to the centroid
         centroid_vector = (vectors[idx][None, :], delta[idx][None, :])
         sq_dist = self._pairwise_distances(*centroid_vector, vectors, delta).ravel()
-        sq_dist[centroids] = 0  # avoid numerical errors
+        sq_dist[sq_dist < 0] = 0  # avoid numerical errors
 
         # Choose the remaining centroids
         for _ in track(range(1, num_samples), description="[green]Badge query"):
@@ -59,7 +59,7 @@ class BADGE(BaseQuery):
             # compute the new squared distances
             centroid_vector = (vectors[idx][None, :], delta[idx][None, :])
             n_dist = self._pairwise_distances(*centroid_vector, vectors, delta).ravel()
-            n_dist[centroids] = 0  # avoid numerical errors
+            n_dist[n_dist < 0] = 0  # avoid numerical errors
 
             # update the minimum squared distance
             sq_dist = torch.minimum(sq_dist, n_dist)
