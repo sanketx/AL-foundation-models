@@ -17,6 +17,7 @@ from ALFM.src.datasets.dataset_wrappers import DTDWrapper
 from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
 from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
 from ALFM.src.datasets.dataset_wrappers import Food101Wrapper
+from ALFM.src.datasets.dataset_wrappers import HAM10000Wrapper
 from ALFM.src.datasets.dataset_wrappers import HeartFailureWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008HeLaWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008LymphomaWrapper
@@ -54,6 +55,7 @@ class DatasetType(Enum):
     colon_polyps = ColonPolypsWrapper()
     colorectal_histology = ColorectalHistologyWrapper()
     diabetic_retinopathy = DiabeticRetinopathyWrapper()
+    ham10000 = HAM10000Wrapper()
     heart_failure = HeartFailureWrapper()
     iicbu_hela = IICBU2008HeLaWrapper()
     iicbu_lymphoma = IICBU2008LymphomaWrapper()

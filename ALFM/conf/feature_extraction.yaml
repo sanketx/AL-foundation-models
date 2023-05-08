@@ -53,6 +53,7 @@ hydra:
         colon_polyps,
         colorectal_histology,
         diabetic_retinopathy,
+        ham10000,
         heart_failure,
         iicbu_hela,
         iicbu_lymphoma,
