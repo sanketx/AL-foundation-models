@@ -5,7 +5,6 @@ from typing import Any
 import faiss
 import numpy as np
 import torch
-import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
@@ -26,16 +25,11 @@ class AlfaMix(BaseQuery):
         self,
         z_u: torch.Tensor,
         z_star: torch.Tensor,
+        z_grad: torch.Tensor,
         y_star: torch.Tensor,
     ) -> torch.Tensor:
-        z_u.requires_grad = True
-        candidates = torch.zeros_like(y_star, dtype=torch.bool)
-
-        logits = self.model.classifier.linear(z_u)
-        loss = F.cross_entropy(logits, y_star, reduction="sum")
-        z_grad = torch.autograd.grad(loss, z_u)[0]
-
-        z_u.requires_grad = False
+        self.model.classifier.linear.cuda()
+        candidates = torch.zeros_like(y_star, dtype=torch.bool, device="cuda")
         grad_norm = torch.norm(z_grad, dim=1, keepdim=True)
 
         for z_s in track(z_star, description="[green]ALFA-Mix candidate selection"):
@@ -56,7 +50,8 @@ class AlfaMix(BaseQuery):
             mismatch_idx = torch.nonzero(y_pred != ys).flatten()
             candidates[current[mismatch_idx]] = True
 
-        return torch.nonzero(candidates).flatten()
+        self.model.classifier.linear.cpu()
+        return torch.nonzero(candidates).cpu().flatten()
 
     def _cluster_candidates(
         self, features: NDArray[np.float32], num_samples: int
@@ -93,11 +88,11 @@ class AlfaMix(BaseQuery):
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
             )
 
-        probs, embedding = self.model.get_probs_and_embedding(self.features)
-        z_star, z_u = embedding[self.labeled_pool], embedding[~self.labeled_pool]
-        y_star = probs[~self.labeled_pool].argmax(dim=1)
+        z_star = self.model.get_embedding(self.features[self.labeled_pool]).cuda()
+        probs, z_u, grads = self.model.get_alpha_grad(self.features[~self.labeled_pool])
+        y_star = probs.argmax(dim=1).cuda()
 
-        candidates = self._get_candidates(z_u, z_star, y_star)
+        candidates = self._get_candidates(z_u.cuda(), z_star, grads.cuda(), y_star)
         selected = self._cluster_candidates(z_u[candidates].numpy(), int(num_samples))
 
         mask = np.zeros(len(self.features), dtype=bool)
