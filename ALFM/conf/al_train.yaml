@@ -105,24 +105,31 @@ hydra:
         dino_vit_L14,
         dino_vit_g14
       dataset: 
+        aircraft,
+        cars,
         cifar10,
         cifar100,
+        flowers,
         food101,
-        cars,
-        aircraft,
         dtd,
         pets,
-        flowers,
-        svhn,
         places365,
-        amyloid_beta,
+        svhn,
+        amyloid_beta_bal,
+        amyloid_beta_unbal,
         blood_smear,
         cell_cycle,
         colon_polyps,
-        colorectal_texture,
+        colorectal_histology,
+        diabetic_retinopathy,
         heart_failure,
-        liquid_based_cytology,
-        patch_camelyon
+        iicbu_hela,
+        iicbu_lymphoma,
+        malaria,
+        pap_smear_2018,
+        pap_smear_2019,
+        patch_camelyon,
+        pollen
 
   # temporarily disable logging
   run:
