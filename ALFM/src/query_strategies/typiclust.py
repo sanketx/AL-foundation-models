@@ -100,7 +100,11 @@ class Typiclust(BaseQuery):
             )
 
         num_clusters = min(num_samples + len(labeled_indices), self.max_clusters)
-        embeddings = self.model.get_embedding(self.features)
+
+        # Typiclust performs clustering on a fixed embedding space.
+        embeddings = torch.from_numpy(self.features)
+        # uncomment the line below to cluster featueres from the classifier
+        # embeddings = self.model.get_embedding(self.features)
         vectors = F.normalize(embeddings).numpy()  # L2 normalized embeddings
 
         clust_labels = self._cluster_features(vectors, int(num_clusters))
