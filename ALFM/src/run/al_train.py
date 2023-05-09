@@ -62,7 +62,9 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
 
     # create a sampler for the intial pool and query it
     init_strategy = InitType[cfg.init_strategy.name]
-    sampler = init_strategy.value(train_x, train_y, **cfg.init_strategy.params)
+    sampler = init_strategy.value(
+        features=train_x, labels=train_y, **cfg.init_strategy.params
+    )
     labeled_pool = sampler.query(budget_init)
 
     # create the active learning query strategy
