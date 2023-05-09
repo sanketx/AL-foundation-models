@@ -94,7 +94,8 @@ hydra:
         badge,
         alfamix
       init_strategy:
-        random_init
+        random_init,
+        typiclust_init
       model:
         openclip_vit_B16,
         openclip_vit_L14,
