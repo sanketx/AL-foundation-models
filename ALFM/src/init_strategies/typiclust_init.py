@@ -34,7 +34,14 @@ class TypiclustInit(BaseInit):
     def _cluster_features(
         self, features: NDArray[np.float32], k: int
     ) -> NDArray[np.int64]:
-        kmeans = faiss.Kmeans(features.shape[1], k, niter=100, gpu=1)
+        kmeans = faiss.Kmeans(
+            features.shape[1],
+            k,
+            niter=100,
+            gpu=1,
+            verbose=True,
+            max_points_per_centroid=128000,
+        )
         init_idx = kmeans_plus_plus_init(features, k)
         kmeans.train(features, init_centroids=features[init_idx])
         _, clust_labels = kmeans.index.search(features, 1)
