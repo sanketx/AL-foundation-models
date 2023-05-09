@@ -56,7 +56,7 @@ class AlfaMix(BaseQuery):
     def _cluster_candidates(
         self, features: NDArray[np.float32], num_samples: int
     ) -> torch.Tensor:
-        kmeans = faiss.Kmeans(features.shape[1], num_samples, niter=300)
+        kmeans = faiss.Kmeans(features.shape[1], num_samples, niter=300, gpu=1)
         init_idx = kmeans_plus_plus_init(features, num_samples)
         kmeans.train(features, init_centroids=features[init_idx])
 
