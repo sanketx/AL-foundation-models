@@ -8,15 +8,19 @@ from rich.progress import track
 
 
 def faiss_pd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    x = x.numpy()
-    y = y.numpy()
+    x, y = x.numpy(), y.numpy()
     dist_matrix = pairwise_distances(x, y)
     return torch.from_numpy(dist_matrix)
 
 
+def torch_pd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    x, y = x.unsqueeze(0), y.unsqueeze(0)
+    return torch.cdist(x, y).squeeze()
+
+
 def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.int64]:
     centroids = []
-    vectors = torch.from_numpy(features)
+    vectors = torch.from_numpy(features).cuda()
     n, d = vectors.shape
 
     # Choose the first centroid uniformly at random
@@ -26,8 +30,8 @@ def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.i
     # Compute the squared distance from all points to the centroid
     # pairwise_distances in FAISS returns the squared L2 distance
     centroid_vector = vectors[idx].view(1, -1)
-    sq_dist = faiss_pd(vectors, centroid_vector).ravel()
-    sq_dist[sq_dist < 0] = 0  # avoid numerical errors
+    sq_dist = torch_pd(vectors, centroid_vector).ravel() ** 2
+    sq_dist[centroids] = 0  # avoid numerical errors
 
     # Choose the remaining centroids
     for _ in track(range(1, k), description="[green]K-Means++ init"):
@@ -37,8 +41,8 @@ def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.i
 
         # update the squared distances
         centroid_vector = vectors[idx].view(1, -1)
-        new_dist = faiss_pd(vectors, centroid_vector).ravel()
-        new_dist[new_dist < 0] = 0  # avoid numerical errors
+        new_dist = torch_pd(vectors, centroid_vector).ravel() ** 2
+        new_dist[centroids] = 0  # avoid numerical errors
 
         # update the minimum squared distance
         sq_dist = torch.minimum(sq_dist, new_dist)
