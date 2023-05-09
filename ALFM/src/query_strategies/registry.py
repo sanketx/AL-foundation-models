@@ -7,6 +7,7 @@ from ALFM.src.query_strategies.badge import BADGE
 from ALFM.src.query_strategies.bald import BALD
 from ALFM.src.query_strategies.balentacq import BalEntAcq
 from ALFM.src.query_strategies.coreset import Coreset
+from ALFM.src.query_strategies.dropout import Dropout
 from ALFM.src.query_strategies.entropy import Entropy
 from ALFM.src.query_strategies.margins import Margins
 from ALFM.src.query_strategies.powerbald import PowerBALD
@@ -31,3 +32,4 @@ class QueryType(Enum):
     probcover = ProbCover
     alfamix = AlfaMix
     typiclust = Typiclust
+    dropout = Dropout
