@@ -1,0 +1,3 @@
+name: dropout
+params:
+  num_iter: 3
