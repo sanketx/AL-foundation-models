@@ -1,13 +1,13 @@
 """Typiclust query strategy."""
 
-import sys
 from typing import Any
 
 import faiss
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn.functional as F
 from numpy.typing import NDArray
-from pandas._libs.tslibs import vectorized
 from rich.progress import track
 
 from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
@@ -100,7 +100,8 @@ class Typiclust(BaseQuery):
             )
 
         num_clusters = min(num_samples + len(labeled_indices), self.max_clusters)
-        vectors = self.model.get_embedding(self.features).numpy()
+        embeddings = self.model.get_embedding(self.features)
+        vectors = F.normalize(embeddings).numpy()  # L2 normalized embeddings
 
         clust_labels = self._cluster_features(vectors, int(num_clusters))
         selected = self._select_points(vectors, clust_labels, num_samples)
