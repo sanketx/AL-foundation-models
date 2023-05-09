@@ -5,6 +5,7 @@ from typing import Any
 import faiss
 import numpy as np
 import torch
+from numpy.testing import verbose
 from numpy.typing import NDArray
 from rich.progress import track
 
@@ -56,7 +57,14 @@ class AlfaMix(BaseQuery):
     def _cluster_candidates(
         self, features: NDArray[np.float32], num_samples: int
     ) -> torch.Tensor:
-        kmeans = faiss.Kmeans(features.shape[1], num_samples, niter=300, gpu=1)
+        kmeans = faiss.Kmeans(
+            features.shape[1],
+            num_samples,
+            niter=100,
+            gpu=1,
+            verbose=True,
+            max_points_per_centroid=128000,
+        )
         init_idx = kmeans_plus_plus_init(features, num_samples)
         kmeans.train(features, init_centroids=features[init_idx])
 
