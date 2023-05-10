@@ -5,6 +5,7 @@ from typing import Any
 import faiss
 import numpy as np
 import torch
+import torch.nn.functional as F
 from numpy.typing import NDArray
 
 from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
@@ -77,6 +78,7 @@ class Dropout(BaseQuery):
 
         features = self.features[unlabeled_indices]
         probs, embeddings = self.model.get_probs_and_embedding(features)
+        embeddings = F.normalize(embeddings)
         y_star = probs.argmax(dim=1)
 
         candidates = self._get_candidates(features, y_star)
