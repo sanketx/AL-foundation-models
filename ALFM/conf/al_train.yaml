@@ -40,6 +40,11 @@ classifier:
         num_classes: ${dataset.num_classes}
         average: weighted
 
+      - _target_: torchmetrics.F1Score
+        task: multiclass
+        num_classes: ${dataset.num_classes}
+        average: weighted
+
 
 # Model training config 
 dataloader:
