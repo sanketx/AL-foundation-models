@@ -26,15 +26,14 @@ from torchvision.datasets import SVHN
 from torchvision.datasets import FGVCAircraft
 from torchvision.datasets import Flowers102
 from torchvision.datasets import Food101
+from torchvision.datasets import ImageFolder
 from torchvision.datasets import OxfordIIITPet
 from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
-
 from torchvision.datasets import VisionDataset
-from torchvision.datasets import ImageFolder
-from ALFM.src.datasets.utils import CustomImageFolder
 
 from ALFM.src.datasets.utils import Cub2011
+from ALFM.src.datasets.utils import CustomImageFolder
 from ALFM.src.datasets.utils import INaturalist2021
 
 
@@ -147,8 +146,8 @@ class CUB200Wrapper:
         download: bool = False,
     ) -> VisionDataset:
         return Cub2011(root, train, transform=transform, download=download)
-    
-    
+
+
 class DomainNetRealWrapper:
     @staticmethod  # don't even ask
     def __call__(

@@ -12,13 +12,12 @@ from typing import Union
 
 import pandas as pd
 from PIL import Image
+from torchvision.datasets import DatasetFolder
+from torchvision.datasets import VisionDataset
 from torchvision.datasets.folder import default_loader
 from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import verify_str_arg
-
-from torchvision.datasets import DatasetFolder
-from torchvision.datasets import VisionDataset
 
 
 class INaturalist2021(VisionDataset):
@@ -299,15 +298,22 @@ class Cub2011(VisionDataset):
 
         return img, target
 
-    
+
 class CustomImageFolder(DatasetFolder):
-    def __init__(self, root, file_path, transform=None, target_transform=None, loader=default_loader):
+    def __init__(
+        self,
+        root,
+        file_path,
+        transform=None,
+        target_transform=None,
+        loader=default_loader,
+    ):
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
         self.samples = []
 
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             for line in f.readlines():
                 img_path, label = line.strip().split()
                 self.samples.append((os.path.join(root, img_path), int(label)))
@@ -324,4 +330,3 @@ class CustomImageFolder(DatasetFolder):
 
     def __len__(self):
         return len(self.samples)
-    
