@@ -31,7 +31,6 @@ class Dropout(BaseQuery):
         )
 
         mismatch = (y_star != samples).sum(dim=0)
-        print(torch.unique(mismatch, return_counts=True))
         return torch.nonzero(mismatch > self.num_iter // 2).flatten()
 
     def _cluster_candidates(
