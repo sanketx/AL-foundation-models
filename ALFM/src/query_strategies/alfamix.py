@@ -5,7 +5,7 @@ from typing import Any
 import faiss
 import numpy as np
 import torch
-from numpy.testing import verbose
+import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
@@ -21,6 +21,18 @@ class AlfaMix(BaseQuery):
         super().__init__(**params)
         D = params["features"].shape[1]
         self.eps = 0.2 / np.sqrt(D)
+
+    def _get_anchors(
+        self, features: torch.Tensor, labels: NDArray[np.int64]
+    ) -> torch.Tensor:
+        seen_classes = len(np.unique(labels))
+        anchors = []
+
+        for i in range(seen_classes):
+            anchor = features[labels == i].mean(dim=0)
+            anchors.append(anchor)
+
+        return torch.stack(anchors)
 
     def _get_candidates(
         self,
@@ -53,6 +65,17 @@ class AlfaMix(BaseQuery):
 
         self.model.classifier.linear.cpu()
         return torch.nonzero(candidates).cpu().flatten()
+
+    def _random_samples(
+        self, candidates: torch.Tensor, num_samples: int
+    ) -> torch.Tensor:
+        num_unlabeled = np.count_nonzero(~self.labeled_pool)
+        unlabeled_pool = torch.ones(num_unlabeled, dtype=torch.bool)
+        unlabeled_pool[candidates] = False  # all candidates will be labeled
+
+        remaining = torch.nonzero(unlabeled_pool).flatten()
+        idx = np.random.choice(len(remaining), num_samples, replace=False)
+        return remaining[idx]
 
     def _cluster_candidates(
         self, features: NDArray[np.float32], num_samples: int
@@ -96,12 +119,23 @@ class AlfaMix(BaseQuery):
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
             )
 
-        z_star = self.model.get_embedding(self.features[self.labeled_pool]).cuda()
+        z_l = self.model.get_embedding(self.features[self.labeled_pool]).cuda()
+        z_star = self._get_anchors(z_l, self.labels[self.labeled_pool].flatten())
+
         probs, z_u, grads = self.model.get_alpha_grad(self.features[~self.labeled_pool])
         y_star = probs.argmax(dim=1).cuda()
 
         candidates = self._get_candidates(z_u.cuda(), z_star, grads.cuda(), y_star)
-        selected = self._cluster_candidates(z_u[candidates].numpy(), int(num_samples))
+
+        if len(candidates) < num_samples:
+            delta = num_samples - len(candidates)
+            random_samples = self._random_samples(candidates, delta)
+            candidates = torch.cat([candidates, random_samples])
+            selected = torch.ones(len(candidates), dtype=torch.bool)
+
+        else:
+            candidate_vectors = F.normalize(z_u[candidates]).numpy()
+            selected = self._cluster_candidates(candidate_vectors, int(num_samples))
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
