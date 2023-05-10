@@ -1,8 +1,8 @@
 """Implements ProbCover query strategy."""
 
 import logging
-import sys
 from typing import Any
+from typing import Optional
 
 import faiss
 import numpy as np
@@ -25,18 +25,18 @@ class ProbCover(BaseQuery):
     """
 
     def __init__(
-        self, batch_size: int, delta_iter: int, delta: int, **params: Any
+        self, batch_size: int, delta_iter: int, delta: Optional[float], **params: Any
     ) -> None:
         """Call the superclass constructor."""
         super().__init__(**params)
         self.batch_size = batch_size
-        self.delta = delta if delta is not None else self._estimate_delta(delta_iter)
-        self._build_graph(delta)
+        self.delta_iter = delta_iter
+        self.delta = delta
 
         # remove edges of the labeled set
         self.labels_removed = False
 
-    def _build_graph(self, delta: float) -> NDArray[np.int64]:
+    def _build_graph(self, delta: float) -> None:
         if not hasattr(self, "edge_list"):  # delta was calulated onffline
             self._estimate_delta(1)
 
@@ -46,7 +46,6 @@ class ProbCover(BaseQuery):
         features = torch.from_numpy(self.features)
         features = F.normalize(features)
         num_classes = len(np.unique(self.labels))
-        num_features = features.shape[1]
 
         clust_labels = self._cluster_features(features.numpy(), num_classes)
         clust_labels = torch.from_numpy(clust_labels).cuda()
@@ -141,6 +140,11 @@ class ProbCover(BaseQuery):
         selected = []
 
         if not self.labels_removed:
+            if self.delta is None:
+                self.delta = self._estimate_delta(self.delta_iter)
+
+            self._build_graph(self.delta)
+
             for idx in np.flatnonzero(self.labeled_pool):
                 self._remove_covered(idx)
 
