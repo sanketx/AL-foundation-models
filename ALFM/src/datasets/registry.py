@@ -13,6 +13,7 @@ from ALFM.src.datasets.dataset_wrappers import ColonPolypsWrapper
 from ALFM.src.datasets.dataset_wrappers import ColorectalHistologyWrapper
 from ALFM.src.datasets.dataset_wrappers import CUB200Wrapper
 from ALFM.src.datasets.dataset_wrappers import DiabeticRetinopathyWrapper
+from ALFM.src.datasets.dataset_wrappers import DomainNetRealWrapper
 from ALFM.src.datasets.dataset_wrappers import DTDWrapper
 from ALFM.src.datasets.dataset_wrappers import FGVCAircraftWrapper
 from ALFM.src.datasets.dataset_wrappers import Flowers102Wrapper
@@ -50,6 +51,7 @@ class DatasetType(Enum):
     cub200 = CUB200Wrapper()
     inat2021 = INaturalistWrapper()
     imagenet100 = ImageNet100Wrapper()
+    domainnetreal = DomainNetRealWrapper()
     amyloid_beta_bal = AmyloidBetaBalancedWrapper()
     amyloid_beta_unbal = AmyloidBetaUnbalancedWrapper()
     blood_smear = BloodSmearWrapper()
