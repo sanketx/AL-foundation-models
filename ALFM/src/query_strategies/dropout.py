@@ -1,12 +1,10 @@
 """Dropout sampling class."""
 
-import sys
 from typing import Any
 
 import faiss
 import numpy as np
 import torch
-from numpy.testing import verbose
 from numpy.typing import NDArray
 
 from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
