@@ -21,6 +21,7 @@ from ALFM.src.datasets.dataset_wrappers import HAM10000Wrapper
 from ALFM.src.datasets.dataset_wrappers import HeartFailureWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008HeLaWrapper
 from ALFM.src.datasets.dataset_wrappers import IICBU2008LymphomaWrapper
+from ALFM.src.datasets.dataset_wrappers import ImageNet100Wrapper
 from ALFM.src.datasets.dataset_wrappers import INaturalistWrapper
 from ALFM.src.datasets.dataset_wrappers import MalariaDatasetWrapper
 from ALFM.src.datasets.dataset_wrappers import OxfordIIITPetWrapper
@@ -48,6 +49,7 @@ class DatasetType(Enum):
     places365 = Places365Wrapper()
     cub200 = CUB200Wrapper()
     inat2021 = INaturalistWrapper()
+    imagenet100 = ImageNet100Wrapper()
     amyloid_beta_bal = AmyloidBetaBalancedWrapper()
     amyloid_beta_unbal = AmyloidBetaUnbalancedWrapper()
     blood_smear = BloodSmearWrapper()
