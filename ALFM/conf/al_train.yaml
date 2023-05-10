@@ -123,6 +123,7 @@ hydra:
         pets,
         places365,
         svhn,
+        imagenet100,
         amyloid_beta_bal,
         amyloid_beta_unbal,
         blood_smear,
