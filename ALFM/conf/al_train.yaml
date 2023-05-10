@@ -95,6 +95,7 @@ hydra:
         alfamix
       init_strategy:
         random_init,
+        centroid_init,
         typiclust_init
       model:
         openclip_vit_B16,

@@ -1,6 +1,7 @@
 """Wrapper functions to standardize vision datasets."""
 
 
+import os
 from typing import Optional
 
 from bcv.datasets.biology.icpr2020_pollen import ICPR2020Pollen
@@ -145,9 +146,17 @@ class CUB200Wrapper:
         return Cub2011(root, train, transform=transform, download=download)
 
 
-class ImageNetWrapper:
-    # TO-DO: Implement subsets 100, 200 first
-    pass
+class ImageNet100Wrapper:
+    @staticmethod  # don't even ask
+    def __call__(
+        root: str,
+        train: bool,
+        transform: Optional[transforms.Compose] = None,
+        download: bool = False,
+    ) -> VisionDataset:
+        split = "train" if train else "test"
+        root = os.path.join(root, split)
+        return VisionDataset(root, transform=transform)
 
 
 class INaturalistWrapper:
