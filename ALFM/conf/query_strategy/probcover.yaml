@@ -1,3 +1,9 @@
 name: probcover
 params:
-  delta: 0.6
+  batch_size: 20480
+  delta_iter: 5  # number of binary search ops to find delta
+  delta: null
+
+
+# list of deltas
+# cifar100 - dino_vit_g14: 0.734375
