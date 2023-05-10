@@ -29,6 +29,7 @@ from torchvision.datasets import Food101
 from torchvision.datasets import OxfordIIITPet
 from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
+from torchvision.datasets import ImageFolder
 from torchvision.datasets import VisionDataset
 
 from ALFM.src.datasets.utils import Cub2011
@@ -155,8 +156,8 @@ class ImageNet100Wrapper:
         download: bool = False,
     ) -> VisionDataset:
         split = "train" if train else "test"
-        root = os.path.join(root, split)
-        return VisionDataset(root, transform=transform)
+        root = os.path.join(root, "imagenet100", split)
+        return ImageFolder(root, transform=transform)
 
 
 class INaturalistWrapper:
