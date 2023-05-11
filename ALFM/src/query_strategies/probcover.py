@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 from typing import Optional
+from typing import Tuple
 
 import faiss
 import numpy as np
@@ -13,6 +14,7 @@ from rich.progress import track
 
 from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
 from ALFM.src.clustering.kmeans import torch_pd
+from ALFM.src.init_strategies.probcover_init import ProbcoverInit
 from ALFM.src.query_strategies.base_query import BaseQuery
 
 
@@ -33,39 +35,55 @@ class ProbCover(BaseQuery):
         self.delta_iter = delta_iter
         self.delta = delta
 
-        # remove edges of the labeled set
-        self.labels_removed = False
+        # graph construction is deferred to the first query call
+        # this preserves the random state for initial pool selection
+        self.graph_constructed = False
 
-    def _build_graph(self, delta: float) -> None:
-        if not hasattr(self, "edge_list"):  # delta was calulated onffline
-            self._estimate_delta(1)
+        # check if probcover init was used and copy the graphs
+        init_sampler = params["init_sampler"]
 
-        print("graph built")
+        if isinstance(init_sampler, ProbcoverInit):
+            logging.info("Reusing existing graph from probcover init sampler")
+            logging.info(f"overwriting delta: {self.delta} -> {init_sampler.delta}")
+            self.delta = init_sampler.delta
+            self.edge_list = init_sampler.edge_list
+            self.graph_constructed = True
 
-    def _estimate_delta(self, delta_iter: int) -> float:
+    def _build_graph(self) -> None:
+        if not hasattr(self, "edge_list"):  # delta was calulated offline
+            features, clust_labels = self._label_clusters()
+            alpha = self._purity(self.delta, features.cuda(), clust_labels.cuda())
+            logging.info(f"Graph built, delta: {self.delta}, alpha: {alpha}")
+
+    def _estimate_delta(self, delta_iter: int) -> None:
+        if self.delta is not None:
+            logging.info(f"Delta: {self.delta} was computed offline")
+            return
+
+        features, clust_labels = self._label_clusters()
+        self.delta, lower, upper = 0.5, 0.0, 1.0
+
+        for i in track(
+            range(delta_iter), description="[green]Probcover delta estimation"
+        ):
+            alpha = self._purity(self.delta, features.cuda(), clust_labels.cuda())
+            logging.info(f"iteration: {i}, delta: {self.delta}, alpha: {alpha}")
+
+            if alpha < 0.95:
+                upper = self.delta
+                self.delta = 0.5 * (lower + self.delta)
+
+            else:
+                lower = self.delta
+                self.delta = 0.5 * (upper + self.delta)
+
+    def _label_clusters(self) -> Tuple[torch.Tensor, torch.Tensor]:
         features = torch.from_numpy(self.features)
         features = F.normalize(features)
         num_classes = len(np.unique(self.labels))
 
         clust_labels = self._cluster_features(features.numpy(), num_classes)
-        clust_labels = torch.from_numpy(clust_labels).cuda()
-        delta, lower, upper = 0.75, 0.5, 1.0
-
-        for i in track(
-            range(delta_iter), description="[green]Probcover delta estimation"
-        ):
-            alpha = self._purity(delta, features.cuda(), clust_labels)
-            logging.info(f"iteration: {i}, delta: {delta}, alpha: {alpha}")
-
-            if alpha < 0.95:
-                upper = delta
-                delta = 0.5 * (lower + delta)
-
-            else:
-                lower = delta
-                delta = 0.5 * (upper + delta)
-
-        return delta
+        return features, torch.from_numpy(clust_labels)
 
     def _purity(
         self,
@@ -139,16 +157,13 @@ class ProbCover(BaseQuery):
 
         selected = []
 
-        if not self.labels_removed:
-            if self.delta is None:
-                self.delta = self._estimate_delta(self.delta_iter)
-
-            self._build_graph(self.delta)
+        if not self.graph_constructed:  # first call to query
+            self._estimate_delta(self.delta_iter)  # may need to be computed online
+            self._build_graph()  # has to be computed on first call
+            self.graph_constructed = True
 
             for idx in np.flatnonzero(self.labeled_pool):
                 self._remove_covered(idx)
-
-            self.labels_removed = True
 
         for _ in track(range(num_samples), description="[green]Probcover query"):
             idx = self._highest_degree()
