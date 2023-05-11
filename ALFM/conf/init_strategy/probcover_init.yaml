@@ -1,0 +1,5 @@
+name: probcover_init
+params:
+  batch_size: 10240
+  delta_iter: 6  # number of binary search ops to find delta
+  delta: null
