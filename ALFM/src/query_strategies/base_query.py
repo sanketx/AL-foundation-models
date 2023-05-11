@@ -6,13 +6,17 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
+from ALFM.src.init_strategies.base_init import BaseInit
 
 
 class BaseQuery(metaclass=abc.ABCMeta):
     """This class provides the blueprint for different intial query methods."""
 
     def __init__(
-        self, features: NDArray[np.float32], labels: NDArray[np.int64]
+        self,
+        features: NDArray[np.float32],
+        labels: NDArray[np.int64],
+        init_sampler: BaseInit,
     ) -> None:
         """Intialize the class at iteration 1."""
         self.iteration = 1

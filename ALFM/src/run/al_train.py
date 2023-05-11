@@ -62,15 +62,18 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
 
     # create a sampler for the intial pool and query it
     init_strategy = InitType[cfg.init_strategy.name]
-    sampler = init_strategy.value(
+    init_sampler = init_strategy.value(
         features=train_x, labels=train_y, **cfg.init_strategy.params
     )
-    labeled_pool = sampler.query(budget_init)
+    labeled_pool = init_sampler.query(budget_init)
 
     # create the active learning query strategy
     query_strategy = QueryType[cfg.query_strategy.name]
-    sampler = query_strategy.value(
-        features=train_x, labels=train_y, **cfg.query_strategy.params
+    query_sampler = query_strategy.value(
+        features=train_x,
+        labels=train_y,
+        init_sampler=init_sampler,
+        **cfg.query_strategy.params,
     )
 
     for i, iteration in enumerate(iterations, 1):
@@ -86,8 +89,8 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
         # compute how many new samples to query
         budget = (iterations[i] - iterations[i - 1]) * num_classes * cfg.budget.step
 
-        sampler.update_state(iteration, labeled_pool, model)
-        labeled_pool |= sampler.query(budget)  # update labeled pool
+        query_sampler.update_state(iteration, labeled_pool, model)
+        labeled_pool |= query_sampler.query(budget)  # update labeled pool
 
         # log everything
         print()
