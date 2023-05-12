@@ -39,7 +39,7 @@ class CentroidInit(BaseInit):
 
         features = torch.from_numpy(self.features)
         vectors = F.normalize(features).numpy()
-        selected = cluster_features(vectors, int(num_samples))
+        selected = cluster_features(vectors, num_samples)
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[selected] = True
