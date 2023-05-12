@@ -1,10 +1,15 @@
 """Script to extract and save image features using pretrained backbones."""
 
+import os
+
 import hydra
 from dotenv import dotenv_values
 from omegaconf import DictConfig
 
 from ALFM.src.run.feature_extraction import extract_features
+
+
+os.environ["SLURM_JOB_NAME"] = "interactive"
 
 
 @hydra.main(
