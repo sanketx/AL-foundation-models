@@ -44,11 +44,8 @@ class ProbcoverInit(BaseInit):
         features, clust_labels = self._label_clusters()
         delta, lower, upper = 0.5, 0.0, 1.0
 
-        for i in track(
-            range(delta_iter), description="[green]Probcover delta estimation"
-        ):
+        for i in track(range(delta_iter), description="[green]Delta estimation"):
             alpha = self._purity(delta, features.cuda(), clust_labels.cuda())
-            logging.info(f"iteration: {i}, delta: {delta}, alpha: {alpha}")
 
             if alpha < 0.95:
                 upper = delta
@@ -57,6 +54,8 @@ class ProbcoverInit(BaseInit):
             else:
                 lower = delta
                 delta = 0.5 * (upper + delta)
+
+            logging.info(f"iteration: {i}, delta: {delta}, alpha: {alpha}")
 
         return delta
 
