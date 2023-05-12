@@ -1,3 +1,5 @@
 name: entropy
 params:
   enable_dropout: false
+  cluster_features: false
+  topk: 0.05

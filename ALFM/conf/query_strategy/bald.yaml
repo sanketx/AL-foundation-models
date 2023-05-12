@@ -1,3 +1,5 @@
 name: bald
 params:
   M: 20
+  cluster_features: false
+  topk: 0.05
