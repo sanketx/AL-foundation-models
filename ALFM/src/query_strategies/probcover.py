@@ -63,11 +63,8 @@ class ProbCover(BaseQuery):
         features, clust_labels = self._label_clusters()
         self.delta, lower, upper = 0.5, 0.0, 1.0
 
-        for i in track(
-            range(delta_iter), description="[green]Probcover delta estimation"
-        ):
+        for i in track(range(delta_iter), description="[green]Delta estimation"):
             alpha = self._purity(self.delta, features.cuda(), clust_labels.cuda())
-            logging.info(f"iteration: {i}, delta: {self.delta}, alpha: {alpha}")
 
             if alpha < 0.95:
                 upper = self.delta
@@ -76,6 +73,8 @@ class ProbCover(BaseQuery):
             else:
                 lower = self.delta
                 self.delta = 0.5 * (upper + self.delta)
+
+            logging.info(f"iteration: {i}, delta: {self.delta}, alpha: {alpha}")
 
     def _label_clusters(self) -> Tuple[torch.Tensor, torch.Tensor]:
         features = torch.from_numpy(self.features)
