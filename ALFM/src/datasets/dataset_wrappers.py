@@ -170,7 +170,7 @@ class ImageNet100Wrapper:
         transform: Optional[transforms.Compose] = None,
         download: bool = False,
     ) -> VisionDataset:
-        split = "train" if train else "test"
+        split = "train" if train else "val"
         root = os.path.join(root, "imagenet100", split)
         return ImageFolder(root, transform=transform)
 
