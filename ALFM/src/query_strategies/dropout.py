@@ -1,5 +1,6 @@
 """Dropout sampling class."""
 
+import logging
 from typing import Any
 
 import numpy as np
@@ -20,7 +21,7 @@ class Dropout(BaseQuery):
         self.num_iter = num_iter
 
     def _get_candidates(
-        self, features: NDArray[np.float32], y_star: torch.Tensor
+        self, features: NDArray[np.float32], y_star: torch.Tensor, num_samples: int
     ) -> torch.Tensor:
         samples = torch.stack(
             [
@@ -29,8 +30,27 @@ class Dropout(BaseQuery):
             ]
         )
 
+        thresh = self.num_iter // 2
         mismatch = (y_star != samples).sum(dim=0)
-        return torch.nonzero(mismatch > self.num_iter // 2).flatten()
+
+        while (mismatch > thresh).sum() < 25 * num_samples and thresh > 0:
+            thresh = thresh - 1
+
+        logging.info(
+            f"Dropout iterations: {self.num_iter}, Mismatch threshold: {thresh}"
+        )
+        return torch.nonzero(mismatch > thresh).flatten()
+
+    def _random_samples(
+        self, candidates: torch.Tensor, num_samples: int
+    ) -> torch.Tensor:
+        num_unlabeled = np.count_nonzero(~self.labeled_pool)
+        unlabeled_pool = torch.ones(num_unlabeled, dtype=torch.bool)
+        unlabeled_pool[candidates] = False  # all candidates will be labeled
+
+        remaining = torch.nonzero(unlabeled_pool).flatten()
+        idx = np.random.choice(len(remaining), num_samples, replace=False)
+        return remaining[idx]
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -50,11 +70,19 @@ class Dropout(BaseQuery):
 
         features = self.features[unlabeled_indices]
         probs, embeddings = self.model.get_probs_and_embedding(features)
-        embeddings = F.normalize(embeddings)
         y_star = probs.argmax(dim=1)
 
-        candidates = self._get_candidates(features, y_star)
-        selected = cluster_features(embeddings[candidates].numpy(), int(num_samples))
+        candidates = self._get_candidates(features, y_star, num_samples)
+
+        if len(candidates) < num_samples:
+            delta = num_samples - len(candidates)
+            random_samples = self._random_samples(candidates, delta)
+            candidates = torch.cat([candidates, random_samples])
+            selected = torch.ones(len(candidates), dtype=torch.bool)
+
+        else:
+            candidate_vectors = F.normalize(embeddings[candidates]).numpy()
+            selected = cluster_features(candidate_vectors, num_samples)
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
