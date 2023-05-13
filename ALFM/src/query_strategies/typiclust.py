@@ -1,5 +1,6 @@
 """Typiclust query strategy."""
 
+import logging
 from typing import Any
 
 import faiss
@@ -10,7 +11,8 @@ import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
-from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
+from ALFM.src.clustering.kmeans import cluster_features
+from ALFM.src.init_strategies.typiclust_init import TypiclustInit
 from ALFM.src.query_strategies.base_query import BaseQuery
 
 
@@ -31,21 +33,20 @@ class Typiclust(BaseQuery):
         self.min_size = min_size
         self.max_clusters = max_clusters
 
-    def _cluster_features(
-        self, features: NDArray[np.float32], k: int
-    ) -> NDArray[np.int64]:
-        kmeans = faiss.Kmeans(
-            features.shape[1],
-            k,
-            niter=100,
-            gpu=1,
-            verbose=True,
-            max_points_per_centroid=128000,
-        )
-        init_idx = kmeans_plus_plus_init(features, k)
-        kmeans.train(features, init_centroids=features[init_idx])
-        _, clust_labels = kmeans.index.search(features, 1)
-        return clust_labels.ravel()
+        # check if typiclust init was used and copy the graphs
+        init_sampler = params["init_sampler"]
+
+        if isinstance(init_sampler, TypiclustInit):
+            if init_sampler.max_clusters != max_clusters:
+                logging.warning(
+                    "Mismatch in Typiclust max clusters - init: "
+                    + f"{init_sampler.max_clusters}, query: {max_clusters}"
+                )
+                return
+
+            if hasattr(init_sampler, "clust_labels"):
+                logging.info("Copying precomputed cluster indices")
+                self.clust_labels = init_sampler.clust_labels
 
     def _typical_vec_id(self, features: NDArray[np.float32], knn: int) -> int:
         index = faiss.IndexFlatL2(features.shape[1])
@@ -56,12 +57,15 @@ class Typiclust(BaseQuery):
     def _select_points(
         self,
         features: NDArray[np.float32],
-        clust_labels: NDArray[np.int64],
+        clust_labels: torch.Tensor,
         num_samples: int,
-    ) -> NDArray[np.int64]:
-        cluster_ids, cluster_sizes = np.unique(clust_labels, return_counts=True)
+    ) -> torch.Tensor:
+        labeled_pool = torch.from_numpy(self.labeled_pool)
+        clust_labels = clust_labels.clone()
+        cluster_ids, cluster_sizes = torch.unique(clust_labels, return_counts=True)
+
         num_clusters = len(cluster_ids)
-        count = np.bincount(clust_labels[self.labeled_pool], minlength=num_clusters)
+        count = torch.bincount(clust_labels[labeled_pool], minlength=num_clusters)
 
         cluster_df = pd.DataFrame(
             dict(
@@ -72,22 +76,22 @@ class Typiclust(BaseQuery):
         ).sort_values(["existing_count", "cluster_size"], ascending=[True, False])
         cluster_df = cluster_df[cluster_df.cluster_size > self.min_size]
 
-        clust_labels[self.labeled_pool] = -1  # mark these as seen
+        clust_labels[labeled_pool] = -1  # mark these as seen
         num_clusters = len(cluster_df)  # update after removing small clusters
-        selected = []
+        selected = torch.zeros(len(features), dtype=torch.bool)
 
         for i in track(range(num_samples), description="[green]Typiclust query"):
             idx = cluster_df.cluster_id.values[i % num_clusters]
-            indices = np.flatnonzero(clust_labels == idx)
+            indices = torch.nonzero(clust_labels == idx).flatten()
             vectors = features[indices]
 
             knn = min(self.knn, len(indices) // 2)
             vec_id = self._typical_vec_id(vectors, knn)
 
-            selected.append(indices[vec_id])
+            selected[indices[vec_id]] = True
             clust_labels[indices[vec_id]] = -1
 
-        return np.array(selected)
+        return torch.nonzero(selected).flatten()
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
@@ -114,9 +118,16 @@ class Typiclust(BaseQuery):
         # embeddings = self.model.get_embedding(self.features)
         vectors = F.normalize(embeddings).numpy()  # L2 normalized embeddings
 
-        clust_labels = self._cluster_features(vectors, int(num_clusters))
-        selected = self._select_points(vectors, clust_labels, num_samples)
+        if not hasattr(self, "clust_labels"):  # check if precomputed
+            _, clust_labels = cluster_features(vectors, num_clusters)
 
+            if num_clusters == self.max_clusters:  # save cluster labels
+                self.clust_labels = clust_labels
+
+        else:  # load precomputed cluster labels
+            clust_labels = self.clust_labels
+
+        selected = self._select_points(vectors, clust_labels, num_samples)
         mask = np.zeros(len(self.features), dtype=bool)
         mask[selected] = True
         return mask
