@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
+from ALFM.src.clustering.kmeans import cluster_features
 from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
 from ALFM.src.init_strategies.base_init import BaseInit
 
@@ -31,22 +32,6 @@ class TypiclustInit(BaseInit):
         self.min_size = min_size
         self.max_clusters = max_clusters
 
-    def _cluster_features(
-        self, features: NDArray[np.float32], k: int
-    ) -> NDArray[np.int64]:
-        kmeans = faiss.Kmeans(
-            features.shape[1],
-            k,
-            niter=100,
-            gpu=1,
-            verbose=True,
-            max_points_per_centroid=128000,
-        )
-        init_idx = kmeans_plus_plus_init(features, k)
-        kmeans.train(features, init_centroids=features[init_idx])
-        _, clust_labels = kmeans.index.search(features, 1)
-        return clust_labels.ravel()
-
     def _typical_vec_id(self, features: NDArray[np.float32], knn: int) -> int:
         index = faiss.IndexFlatL2(features.shape[1])
         index.add(features)
@@ -56,10 +41,11 @@ class TypiclustInit(BaseInit):
     def _select_points(
         self,
         features: NDArray[np.float32],
-        clust_labels: NDArray[np.int64],
+        clust_labels: torch.Tensor,
         num_samples: int,
-    ) -> NDArray[np.int64]:
-        cluster_ids, cluster_sizes = np.unique(clust_labels, return_counts=True)
+    ) -> torch.Tensor:
+        clust_labels = clust_labels.clone()
+        cluster_ids, cluster_sizes = torch.unique(clust_labels, return_counts=True)
         num_clusters = len(cluster_ids)
 
         cluster_df = pd.DataFrame(
@@ -71,20 +57,20 @@ class TypiclustInit(BaseInit):
         cluster_df = cluster_df[cluster_df.cluster_size > self.min_size]
 
         num_clusters = len(cluster_df)  # update after removing small clusters
-        selected = []
+        selected = torch.zeros(len(features), dtype=torch.bool)
 
         for i in track(range(num_samples), description="[green]Typiclust init"):
             idx = cluster_df.cluster_id.values[i % num_clusters]
-            indices = np.flatnonzero(clust_labels == idx)
+            indices = torch.nonzero(clust_labels == idx).flatten()
             vectors = features[indices]
 
             knn = min(self.knn, len(indices) // 2)
             vec_id = self._typical_vec_id(vectors, knn)
 
-            selected.append(indices[vec_id])
+            selected[indices[vec_id]] = True
             clust_labels[indices[vec_id]] = -1
 
-        return np.array(selected)
+        return torch.nonzero(selected).flatten()
 
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select the intial set of datapoints to be labeled.
@@ -104,8 +90,11 @@ class TypiclustInit(BaseInit):
         features = torch.from_numpy(self.features)
         vectors = F.normalize(features).numpy()
 
-        clust_labels = self._cluster_features(vectors, int(num_clusters))
+        _, clust_labels = cluster_features(vectors, num_clusters)
         selected = self._select_points(vectors, clust_labels, num_samples)
+
+        if num_clusters == self.max_clusters:
+            self.clust_labels = clust_labels  # save these for later use
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[selected] = True
