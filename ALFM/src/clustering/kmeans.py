@@ -1,5 +1,8 @@
 """Implementation of K-Means++."""
 
+from typing import Optional
+from typing import Tuple
+
 import faiss
 import numpy as np
 import torch
@@ -50,8 +53,12 @@ def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.i
     return np.array(centroids)
 
 
-def cluster_features(features: NDArray[np.float32], num_samples: int) -> torch.Tensor:
-    num_samples = int(num_samples)  # np scalars cause problems with faiss
+def cluster_features(
+    features: NDArray[np.float32],
+    num_samples: int,
+    weights: Optional[NDArray[np.float32]] = None,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    num_samples = int(num_samples)  # np int scalars cause problems with faiss
 
     kmeans = faiss.Kmeans(
         features.shape[1],
@@ -59,10 +66,11 @@ def cluster_features(features: NDArray[np.float32], num_samples: int) -> torch.T
         niter=100,
         gpu=1,
         verbose=True,
-        max_points_per_centroid=128000,
+        min_points_per_centroid=1,
+        max_points_per_centroid=512,
     )
     init_idx = kmeans_plus_plus_init(features, num_samples)
-    kmeans.train(features, init_centroids=features[init_idx])
+    kmeans.train(features, weights=weights, init_centroids=features[init_idx])
 
     sq_dist, cluster_idx = kmeans.index.search(features, 1)
     sq_dist = torch.from_numpy(sq_dist).ravel()
@@ -74,4 +82,4 @@ def cluster_features(features: NDArray[np.float32], num_samples: int) -> torch.T
         min_idx = sq_dist[idx].argmin()  # point closest to the centroid
         selected[i] = idx[min_idx]  # add that id to the selected set
 
-    return selected
+    return selected, cluster_idx
