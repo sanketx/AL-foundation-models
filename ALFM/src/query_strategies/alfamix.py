@@ -108,7 +108,7 @@ class AlfaMix(BaseQuery):
 
         else:
             candidate_vectors = F.normalize(z_u[candidates]).numpy()
-            selected = cluster_features(candidate_vectors, num_samples)
+            selected, _ = cluster_features(candidate_vectors, num_samples)
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
