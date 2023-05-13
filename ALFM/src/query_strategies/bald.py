@@ -20,13 +20,19 @@ class BALD(BaseQuery):
     """
 
     def __init__(
-        self, M: int, cluster_features: bool, topk: float, **params: Any
+        self,
+        M: int,
+        typical_features: bool,
+        cluster_features: bool,
+        oversample: int,
+        **params: Any,
     ) -> None:
         """Call the superclass constructor."""
         super().__init__(**params)
         self.M = M
+        self.typical_features = typical_features
         self.cluster_features = cluster_features
-        self.topk = topk
+        self.oversample = oversample if cluster_features else 1
 
     def _get_mc_samples(self, features: NDArray[np.float32]) -> torch.Tensor:
         """Get MC samples from the model.
@@ -67,13 +73,18 @@ class BALD(BaseQuery):
 
         features = self.features[unlabeled_indices]
         indices = self.rank_features(features)
-        topk = round(self.topk * len(features))
+        budget = min(self.oversample * num_samples, len(unlabeled_indices))
 
-        if self.cluster_features and topk > num_samples:
-            vectors = torch.from_numpy(features[indices[:topk]])
-            vectors = F.normalize(vectors).numpy()
-            indices = cluster_features(vectors, num_samples)
+        if self.typical_features:  # which points to select
+            start = len(features) // 2 - budget // 2  # median centered points
+            indices = indices[start : start + budget]
+        else:
+            indices = indices[:budget]  # select top B points
 
-        indices = indices[:num_samples]
+        if budget > num_samples:  # cluster the diverse samples
+            vectors = F.normalize(torch.from_numpy(features[indices]))
+            centroids, _ = cluster_features(vectors.numpy(), num_samples)
+            indices = indices[centroids]  # pick the points closest to centroids
+
         mask[unlabeled_indices[indices]] = True
         return mask

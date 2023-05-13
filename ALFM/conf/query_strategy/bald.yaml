@@ -1,5 +1,6 @@
 name: bald
 params:
   M: 20
-  cluster_features: false
-  topk: 0.05
+  typical_features: false  # sample points with median scores
+  cluster_features: true  # oversample and cluster candidates
+  oversample: 50  # oversampling factor 

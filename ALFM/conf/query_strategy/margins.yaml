@@ -1,5 +1,6 @@
 name: margins
 params:
-  enable_dropout: false
-  cluster_features: false
-  topk: 0.05
+  enable_dropout: false  # whether to enable dropout for querying
+  typical_features: false  # sample points with median scores
+  cluster_features: false  # oversample and cluster candidates
+  oversample: 50  # oversampling factor 

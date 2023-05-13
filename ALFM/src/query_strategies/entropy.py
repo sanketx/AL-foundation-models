@@ -15,7 +15,12 @@ class Entropy(BaseQuery):
     """Selects samples with highest predictive entropy."""
 
     def __init__(
-        self, enable_dropout: bool, cluster_features: bool, topk: float, **params: Any
+        self,
+        enable_dropout: bool,
+        typical_features: bool,
+        cluster_features: bool,
+        oversample: int,
+        **params: Any,
     ) -> None:
         """Call the superclass constructor.
 
@@ -24,8 +29,9 @@ class Entropy(BaseQuery):
         """
         super().__init__(**params)
         self.enable_dropout = enable_dropout
+        self.typical_features = typical_features
         self.cluster_features = cluster_features
-        self.topk = topk
+        self.oversample = oversample if cluster_features else 1
 
     @staticmethod
     def get_entropy(probs: torch.Tensor) -> torch.Tensor:
@@ -63,13 +69,18 @@ class Entropy(BaseQuery):
         features = self.features[unlabeled_indices]
         softmax_probs = self.model.get_probs(features, dropout=self.enable_dropout)
         indices = self.rank_features(softmax_probs)
-        topk = round(self.topk * len(features))
+        budget = min(self.oversample * num_samples, len(unlabeled_indices))
 
-        if self.cluster_features and topk > num_samples:
-            vectors = torch.from_numpy(features[indices[:topk]])
-            vectors = F.normalize(vectors).numpy()
-            indices = cluster_features(vectors, num_samples)
+        if self.typical_features:  # which points to select
+            start = len(features) // 2 - budget // 2  # median centered points
+            indices = indices[start : start + budget]
+        else:
+            indices = indices[:budget]  # select top B points
 
-        indices = indices[:num_samples]
+        if budget > num_samples:  # cluster the diverse samples
+            vectors = F.normalize(torch.from_numpy(features[indices]))
+            centroids, _ = cluster_features(vectors.numpy(), num_samples)
+            indices = indices[centroids]  # pick the points closest to centroids
+
         mask[unlabeled_indices[indices]] = True
         return mask
