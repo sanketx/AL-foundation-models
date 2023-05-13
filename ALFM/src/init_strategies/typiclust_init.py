@@ -11,7 +11,6 @@ from numpy.typing import NDArray
 from rich.progress import track
 
 from ALFM.src.clustering.kmeans import cluster_features
-from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
 from ALFM.src.init_strategies.base_init import BaseInit
 
 
