@@ -1,19 +1,17 @@
 """Probcover init query class."""
 
 import logging
-import sys
 from typing import Any
 from typing import Optional
 from typing import Tuple
 
-import faiss
 import numpy as np
 import torch
 import torch.nn.functional as F
 from numpy.typing import NDArray
 from rich.progress import track
 
-from ALFM.src.clustering.kmeans import kmeans_plus_plus_init
+from ALFM.src.clustering.kmeans import cluster_features
 from ALFM.src.clustering.kmeans import torch_pd
 from ALFM.src.init_strategies.base_init import BaseInit
 
@@ -64,8 +62,8 @@ class ProbcoverInit(BaseInit):
         features = F.normalize(features)
         num_classes = len(np.unique(self.labels))
 
-        clust_labels = self._cluster_features(features.numpy(), num_classes)
-        return features, torch.from_numpy(clust_labels)
+        _, clust_labels = cluster_features(features.numpy(), num_classes)
+        return features, clust_labels
 
     def _purity(
         self,
@@ -93,22 +91,6 @@ class ProbcoverInit(BaseInit):
 
         self.edge_list = torch.cat(edge_list)
         return count.item() / num_samples
-
-    def _cluster_features(
-        self, features: NDArray[np.float32], k: int
-    ) -> NDArray[np.int64]:
-        kmeans = faiss.Kmeans(
-            features.shape[1],
-            k,
-            niter=100,
-            gpu=1,
-            verbose=True,
-            max_points_per_centroid=128000,
-        )
-        init_idx = kmeans_plus_plus_init(features, k)
-        kmeans.train(features, init_centroids=features[init_idx])
-        _, clust_labels = kmeans.index.search(features, 1)
-        return clust_labels.ravel()
 
     def _highest_degree(self) -> int:
         num_samples = len(self.features)
