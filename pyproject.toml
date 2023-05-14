@@ -19,6 +19,8 @@ show_error_context = true
 module = [
     "h5py",
     "faiss",
+    "scipy.sparse",
+    "scipy.sparse.linalg",
     "pandas",
     "open_clip",
     "torchvision",
