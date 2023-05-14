@@ -22,6 +22,13 @@ budget: # query budget per class
 seed: 1
 force_exp: false  # overwrite previous results with identical params
 
+ssl:
+  enable: false
+  alpha: 0.9
+  knn: 500
+  gamma: 1
+  n_iter: 100
+
 # Classifier config
 classifier:
   params:
