@@ -7,6 +7,7 @@ from typing import Literal
 from typing import Tuple
 from typing import cast
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
@@ -42,7 +43,7 @@ class BaseClassifier(LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
 
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.CrossEntropyLoss(reduction="none")
         self.metrics = nn.ModuleDict(
             {
                 stage: nn.ModuleList([metric.clone() for metric in metrics])
@@ -64,9 +65,10 @@ class BaseClassifier(LightningModule):
 
         y_pred = self(x)  # logits
         y_prob = y_pred.softmax(dim=-1)  # class probabilities
+        y_true = y.argmax(dim=1) if y.ndim == 2 else y
 
         for metric in self.metrics[stage]:
-            metric(y_prob, y)
+            metric(y_prob, y_true)
             self.log(
                 f"{stage}_{type(metric).__name__}",
                 metric,
@@ -79,7 +81,14 @@ class BaseClassifier(LightningModule):
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         y_pred, y = self.step(batch, "TRAIN")
 
-        loss = self.loss(y_pred, y)
+        if y.ndim == 2:
+            y = y / y.sum(dim=1, keepdim=True)
+            weight = 1 - (-y * torch.log(y + 1e-8)).sum(dim=-1) / np.log(y.shape[1])
+            loss = (self.loss(y_pred, y.argmax(dim=1)) * weight).mean()
+
+        else:
+            loss = self.loss(y_pred, y).mean()
+
         self.log("CELoss", loss, on_step=False, on_epoch=True, prog_bar=True)
         return cast(torch.Tensor, loss)
 
