@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 from omegaconf import DictConfig
 
 from ALFM.src.classifiers.classifier_wrapper import ClassifierWrapper
+from ALFM.src.clustering.label_prop import LabelPropagation
 from ALFM.src.init_strategies.registry import InitType
 from ALFM.src.query_strategies.registry import QueryType
 from ALFM.src.run.utils import ExperimentLogger
@@ -76,9 +77,15 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
         **cfg.query_strategy.params,
     )
 
+    # label propagation
+    ssl = LabelPropagation(**cfg.ssl)
+    ssl.fit(train_x)
+
     for i, iteration in enumerate(iterations, 1):
+        ssl_y = ssl.predict(train_y, labeled_pool)
+
         model = ClassifierWrapper(cfg)
-        model.fit(train_x, train_y, labeled_pool)
+        model.fit(train_x, train_y, labeled_pool, ssl_y)
 
         scores = model.eval(test_x, test_y)
         exp_logger.log_scores(scores, i, len(iterations), labeled_pool.sum())
@@ -91,6 +98,3 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
 
         query_sampler.update_state(iteration, labeled_pool, model)
         labeled_pool |= query_sampler.query(budget)  # update labeled pool
-
-        # log everything
-        print()
