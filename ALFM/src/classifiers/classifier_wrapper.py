@@ -3,6 +3,7 @@
 import logging
 import warnings
 from typing import Dict
+from typing import Optional
 from typing import Tuple
 from typing import cast
 
@@ -43,6 +44,7 @@ class ClassifierWrapper:
         features: NDArray[np.float32],
         labels: NDArray[np.int64],
         mask: NDArray[bool_],
+        ssl_labels: Optional[NDArray[np.float32]] = None,
     ) -> None:
         total_samples = len(features)
         num_samples = len(features[mask])
@@ -54,6 +56,10 @@ class ClassifierWrapper:
             f"Training on {num_samples}/{total_samples} samples with dim: "
             + f"{num_features}, seen {seen_classes}/{num_classes} classes"
         )
+
+        if ssl_labels is not None:
+            labels = ssl_labels
+            mask = np.ones_like(mask)
 
         dataset = ALDataset(features, labels, mask)
         self.trainer = instantiate(self.trainer_cfg)
