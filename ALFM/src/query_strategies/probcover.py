@@ -80,7 +80,7 @@ class ProbCover(BaseQuery):
         features = F.normalize(features)
         num_classes = len(np.unique(self.labels))
 
-        clust_labels = cluster_features(features.numpy(), num_classes)
+        _, clust_labels = cluster_features(features.numpy(), num_classes)
         return features, clust_labels
 
     def _purity(
