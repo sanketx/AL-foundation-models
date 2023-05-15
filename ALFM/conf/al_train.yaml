@@ -72,7 +72,7 @@ trainer:
   _target_: pytorch_lightning.Trainer
   devices: 1
   logger: false
-  default_root_dir: /tmp/lightning
+  default_root_dir: /tmp/${oc.env:USER}/lightning
   enable_model_summary: false
 
   callbacks:
