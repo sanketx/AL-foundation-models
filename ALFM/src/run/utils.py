@@ -5,7 +5,6 @@ import hashlib
 import json
 import logging
 import os
-import sys
 from multiprocessing.shared_memory import SharedMemory
 from pathlib import Path
 from typing import Any
@@ -58,7 +57,7 @@ class ExperimentLogger:
                 f"A config file with these parameters exists: '{self.file_name}.yaml'."
                 + "\nSpecify 'force_exp=true' to override"
             )
-            sys.exit(1)
+            raise RuntimeError(f"Skipping experiment {self.file_name}")
 
         if os.path.exists(exp_file) and force_exp:
             logging.warning(
