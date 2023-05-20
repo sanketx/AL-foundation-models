@@ -27,7 +27,7 @@ class AlfaMix(BaseQuery):
         seen_classes = len(np.unique(labels))
         anchors = []
 
-        for i in range(seen_classes):
+        for i in track(range(seen_classes), description="[green]Alfamix anchors"):
             anchor = features[labels == i].mean(dim=0)
             anchors.append(anchor)
 
@@ -40,27 +40,35 @@ class AlfaMix(BaseQuery):
         z_grad: torch.Tensor,
         y_star: torch.Tensor,
     ) -> torch.Tensor:
+        device = z_u.device  # GPU for small datasets, CPU otherwise
+        print("DEVICE IS:", device)
+
         self.model.classifier.linear.cuda()
-        candidates = torch.zeros_like(y_star, dtype=torch.bool, device="cuda")
+        candidates = torch.zeros_like(y_star, dtype=torch.bool, device=device)
         grad_norm = torch.norm(z_grad, dim=1, keepdim=True)
 
         for z_s in track(z_star, description="[green]ALFA-Mix candidate selection"):
             # find unlabeled samples not in the candidate pool
             current = torch.nonzero(~candidates).flatten()
-            z = z_u[current]
-            ys = y_star[current]
-            zg = z_grad[current]
-            zg_norm = grad_norm[current]
+            step_size = 512000
 
-            z_diff = z_s - z
-            diff_norm = torch.norm(z_diff, dim=1, keepdim=True)
-            alpha = self.eps * diff_norm * zg / (zg_norm * z_diff)
-            z_lerp = alpha * z_s + (1 - alpha) * z
+            for i in range(0, len(current), step_size):
+                subset = current[i : i + step_size]
 
-            probs = self.model.classifier.linear(z_lerp).softmax(dim=1)
-            y_pred = torch.argmax(probs, dim=1)
-            mismatch_idx = torch.nonzero(y_pred != ys).flatten()
-            candidates[current[mismatch_idx]] = True
+                z = z_u[subset].cuda()
+                ys = y_star[subset].cuda()
+                zg = z_grad[subset].cuda()
+                zg_norm = grad_norm[subset].cuda()
+
+                z_diff = z_s - z
+                diff_norm = torch.norm(z_diff, dim=1, keepdim=True)
+                alpha = self.eps * diff_norm * zg / (zg_norm * z_diff)
+                z_lerp = alpha * z_s + (1 - alpha) * z
+
+                probs = self.model.classifier.linear(z_lerp).softmax(dim=1)
+                y_pred = torch.argmax(probs, dim=1)
+                mismatch_idx = torch.nonzero(y_pred != ys).flatten().to(device)
+                candidates[subset[mismatch_idx]] = True
 
         self.model.classifier.linear.cpu()
         return torch.nonzero(candidates).cpu().flatten()
@@ -92,13 +100,18 @@ class AlfaMix(BaseQuery):
                 f"num_samples ({num_samples}) is greater than unlabeled pool size ({len(unlabeled_indices)})"
             )
 
-        z_l = self.model.get_embedding(self.features[self.labeled_pool]).cuda()
+        z_l = self.model.get_embedding(self.features[self.labeled_pool])
         z_star = self._get_anchors(z_l, self.labels[self.labeled_pool].flatten())
 
         probs, z_u, grads = self.model.get_alpha_grad(self.features[~self.labeled_pool])
-        y_star = probs.argmax(dim=1).cuda()
+        y_star = probs.argmax(dim=1)
 
-        candidates = self._get_candidates(z_u.cuda(), z_star, grads.cuda(), y_star)
+        if len(y_star) < 256000:  # move all tensors to GPU
+            candidates = self._get_candidates(
+                z_u.cuda(), z_star.cuda(), grads.cuda(), y_star.cuda()
+            )
+        else:  # move tensor chunks to GPU when required
+            candidates = self._get_candidates(z_u, z_star.cuda(), grads, y_star)
 
         if len(candidates) < num_samples:
             delta = num_samples - len(candidates)
