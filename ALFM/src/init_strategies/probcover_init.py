@@ -42,7 +42,7 @@ class ProbcoverInit(BaseInit):
         features, clust_labels = self._label_clusters()
         delta, lower, upper = 0.5, 0.0, 1.0
 
-        for i in track(range(delta_iter), description="[green]Delta estimation"):
+        for i in range(delta_iter):
             alpha = self._purity(delta, features.cuda(), clust_labels.cuda())
 
             if alpha < 0.95:
@@ -76,9 +76,12 @@ class ProbcoverInit(BaseInit):
         count = torch.tensor(0, device="cuda")
         step = round(self.batch_size**2 / num_samples)
 
-        for i in range(0, num_samples, step):
+        for i in track(
+            range(0, num_samples, step),
+            description="[green]Pairwise distance calculation",
+        ):
             fs = features[i : i + step]
-            mask = torch_pd(fs, features) < delta
+            mask = torch_pd(fs, features, batch_size=len(features)) < delta
             nz_idx = torch.nonzero(mask)
 
             for j in range(len(fs)):
