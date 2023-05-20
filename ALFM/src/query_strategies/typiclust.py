@@ -85,11 +85,12 @@ class Typiclust(BaseQuery):
             indices = torch.nonzero(clust_labels == idx).flatten()
             vectors = features[indices]
 
-            knn = min(self.knn, len(indices) // 2)
-            vec_id = self._typical_vec_id(vectors, knn)
+            if len(vectors) > self.min_size:
+                knn = min(self.knn, len(indices) // 2)
+                vec_id = self._typical_vec_id(vectors, knn)
 
-            selected[indices[vec_id]] = True
-            clust_labels[indices[vec_id]] = -1
+                selected[indices[vec_id]] = True
+                clust_labels[indices[vec_id]] = -1
 
         return torch.nonzero(selected).flatten()
 
