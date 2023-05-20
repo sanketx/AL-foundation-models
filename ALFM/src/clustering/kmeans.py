@@ -16,9 +16,18 @@ def faiss_pd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return torch.from_numpy(dist_matrix)
 
 
-def torch_pd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    x, y = x.unsqueeze(0), y.unsqueeze(0)
-    return torch.cdist(x, y).squeeze()
+def torch_pd(x: torch.Tensor, y: torch.Tensor, batch_size: int = 10240) -> torch.Tensor:
+    result = torch.zeros(x.shape[0], y.shape[0])
+
+    for i in range(0, x.shape[0], batch_size):
+        for j in range(0, y.shape[0], batch_size):
+            x_batch = x[i : i + batch_size]
+            y_batch = y[j : j + batch_size]
+
+            dists = torch.cdist(x_batch.unsqueeze(0), y_batch.unsqueeze(0)).squeeze(0)
+            result[i : i + x_batch.shape[0], j : j + y_batch.shape[0]] = dists
+
+    return result
 
 
 def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.int64]:
