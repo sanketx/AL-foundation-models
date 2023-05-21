@@ -1,3 +1,8 @@
-name: dropout
-params:
-  num_iter: 3
+# @package _global_
+defaults:
+  - override /init_strategy: centroid_init
+
+query_strategy:
+  name: dropout
+  params:
+    num_iter: 3

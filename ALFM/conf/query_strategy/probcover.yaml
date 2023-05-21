@@ -1,9 +1,10 @@
-name: probcover
-params:
-  batch_size: 10240
-  delta_iter: 6  # number of binary search ops to find delta
-  delta: null
+# @package _global_
+defaults:
+  - override /init_strategy: probcover_init
 
-
-# list of deltas
-# cifar100 - dino_vit_g14: 0.734375
+query_strategy:
+  name: probcover
+  params:
+    batch_size: 10240
+    delta_iter: 6  # number of binary search ops to find delta
+    delta: null

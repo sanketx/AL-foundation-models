@@ -1,5 +1,10 @@
-name: typiclust
-params:
-  min_size: 5
-  max_clusters: 500
-  knn: 20
+# @package _global_
+defaults:
+  - override /init_strategy: typiclust_init
+
+query_strategy:
+  name: typiclust
+  params:
+    min_size: 5
+    max_clusters: 500
+    knn: 20
