@@ -17,7 +17,8 @@ def faiss_pd(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
 
 def torch_pd(x: torch.Tensor, y: torch.Tensor, batch_size: int = 10240) -> torch.Tensor:
-    result = torch.zeros(x.shape[0], y.shape[0])
+    x, y = x.cuda(), y.cuda()
+    result = torch.zeros(x.shape[0], y.shape[0], device=x.device)
 
     for i in range(0, x.shape[0], batch_size):
         for j in range(0, y.shape[0], batch_size):
