@@ -49,11 +49,6 @@ class Food101Wrapper:
         return Food101(root, split, transform, download=download)
 
 
-class SUN397Wrapper:
-    # TO-DO: Fine-grained, 397 classes with >100 examples per class
-    pass
-
-
 class StanfordCarsWrapper:
     @staticmethod
     def __call__(
@@ -76,10 +71,6 @@ class FGVCAircraftWrapper:
     ) -> VisionDataset:
         split = "trainval" if train else "test"
         return FGVCAircraft(root, split, transform=transform, download=download)
-
-
-class VOCWrapper:
-    pass
 
 
 class DTDWrapper:
@@ -106,11 +97,6 @@ class OxfordIIITPetWrapper:
         return OxfordIIITPet(
             root, split, target_types="category", transform=transform, download=download
         )
-
-
-class Caltech101Wrapper:
-    # TO-DO: 40-800 examples per class
-    pass
 
 
 class Flowers102Wrapper:
