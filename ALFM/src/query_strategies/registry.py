@@ -5,7 +5,6 @@ from enum import Enum
 from ALFM.src.query_strategies.alfamix import AlfaMix
 from ALFM.src.query_strategies.badge import BADGE
 from ALFM.src.query_strategies.bald import BALD
-from ALFM.src.query_strategies.balentacq import BalEntAcq
 from ALFM.src.query_strategies.coreset import Coreset
 from ALFM.src.query_strategies.dropout import Dropout
 from ALFM.src.query_strategies.entropy import Entropy
@@ -27,7 +26,6 @@ class QueryType(Enum):
     coreset = Coreset
     bald = BALD
     powerbald = PowerBALD
-    balentacq = BalEntAcq
     badge = BADGE
     probcover = ProbCover
     alfamix = AlfaMix
