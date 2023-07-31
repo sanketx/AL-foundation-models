@@ -1,5 +1,5 @@
 # AL-foundation-models
-This code base serves as a highly performant and efficient implementation of modern active learning strategies, along with the introduction of **DropQuery**. This repository is also amenable to the use of open-source foundation models.
+This code base serves as a highly performant and efficient implementation of modern active learning strategies, along with the introduction of **DropQuery**. This repo is amenable to the use of open-source foundation models.
 
 See the following publication for more **DropQuery** details:
 > **Revisiting active learning queries in the era of Foundation Models** <br> [...] et al.<br> under review.
