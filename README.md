@@ -10,7 +10,7 @@ conda env create -f env.yml
 conda activate alfm_env
 
 git clone git@github.com:sanketx/AL-foundation-models.git
-cd Al-foundation-models
+cd AL-foundation-models
 conda develop .
 ```
 
