@@ -32,9 +32,7 @@ from torchvision.datasets import Places365
 from torchvision.datasets import StanfordCars
 from torchvision.datasets import VisionDataset
 
-from ALFM.src.datasets.utils import Cub2011
 from ALFM.src.datasets.utils import CustomImageFolder
-from ALFM.src.datasets.utils import INaturalist2021
 
 
 class Food101Wrapper:
@@ -123,17 +121,6 @@ class SVHNWrapper:
         return SVHN(root, split, transform, download=download)
 
 
-class CUB200Wrapper:
-    @staticmethod  # don't even ask
-    def __call__(
-        root: str,
-        train: bool,
-        transform: Optional[transforms.Compose] = None,
-        download: bool = False,
-    ) -> VisionDataset:
-        return Cub2011(root, train, transform=transform, download=download)
-
-
 class DomainNetRealWrapper:
     @staticmethod  # don't even ask
     def __call__(
@@ -159,18 +146,6 @@ class ImageNet100Wrapper:
         split = "train" if train else "val"
         root = os.path.join(root, "imagenet100", split)
         return ImageFolder(root, transform=transform)
-
-
-class INaturalistWrapper:
-    @staticmethod  # don't even ask
-    def __call__(
-        root: str,
-        train: bool,
-        transform: Optional[transforms.Compose] = None,
-        download: bool = False,
-    ) -> VisionDataset:
-        split = "2021_train" if train else "2021_test"
-        return INaturalist2021(root, split, transform=transform, download=download)
 
 
 class Places365Wrapper:
