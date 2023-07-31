@@ -26,11 +26,11 @@ There are many options to configure the sweep, so specify command line overrides
 Features will be saved to `FEATURE_CACHE_DIR` as specified in your `.env` file. For multi-GPU inference, make the following changes
 ```
 export SLURM_JOB_NAME=interactive  # otherwise pytorch lightning won't launch new processes
-python -m ALFM.feature_extraction +trainer.strategy=ddp, trainer.devices=4
+python -m ALFM.feature_extraction +trainer.strategy=ddp trainer.devices=4
 ```
 
 ## Active Learning
-The following active learning strategies are implemented in this repo:
+The following active learning strategies are implemented:
 
 | Strategy | Paper | Previous code | Notes |
 | --- | --- | --- | --- |
@@ -56,7 +56,7 @@ Guaranteed to be super fast ;)
 
 You can also run custom experiments by creating new config files in `ALFM/conf/dataset` for new datasets and `ALFM/conf/query_strategy` for custom Active Learning strategies. 
 
-You can then use `python -m ALFM.feature_extraction dataset=+your_custom_dataset.yaml` to extract foundation model features and `python -m ALFM.al_train query_strategy=+your_custom_query_strategy.yaml` to run your custom experiments.
+You can then use `python -m ALFM.feature_extraction dataset=your_custom_dataset.yaml` to extract foundation model features and `python -m ALFM.al_train query_strategy=your_custom_query_strategy.yaml` to run your custom experiments.
 
 ## Citation
 If you find this code useful, please cite our paper
