@@ -21,7 +21,7 @@ class Typiclust(BaseQuery):
 
     As described in Hacohen et al, "Active Learning on a Budget:
     Opposite Strategies Suit High and Low Budgets" (https://arxiv.org/abs/2202.02794).
-    Code aapted from https://github.com/avihu111/TypiClust.
+    Code adapted from https://github.com/avihu111/TypiClust.
     """
 
     def __init__(
