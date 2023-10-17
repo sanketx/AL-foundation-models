@@ -84,6 +84,9 @@ class AlfaMix(BaseQuery):
         idx = np.random.choice(len(remaining), num_samples, replace=False)
         return remaining[idx]
 
+    def meta_dict(self):
+        return {"num_candidates": None}
+
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
 
@@ -93,6 +96,7 @@ class AlfaMix(BaseQuery):
         Returns:
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
+        self.meta_data = self.meta_dict()
         unlabeled_indices = np.flatnonzero(~self.labeled_pool)
 
         if num_samples > len(unlabeled_indices):
@@ -113,6 +117,8 @@ class AlfaMix(BaseQuery):
         else:  # move tensor chunks to GPU when required
             candidates = self._get_candidates(z_u, z_star.cuda(), grads, y_star)
 
+        self.meta_data["num_candidates"] = len(candidates)
+
         if len(candidates) < num_samples:
             delta = num_samples - len(candidates)
             random_samples = self._random_samples(candidates, delta)
@@ -125,4 +131,4 @@ class AlfaMix(BaseQuery):
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
-        return mask
+        return mask  # , self.meta_data

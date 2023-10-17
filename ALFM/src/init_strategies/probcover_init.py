@@ -81,7 +81,7 @@ class ProbcoverInit(BaseInit):
             description="[green]Pairwise distance calculation",
         ):
             fs = features[i : i + step]
-            mask = torch_pd(fs, features, batch_size=len(features)) < delta
+            mask = torch_pd(fs, features, batch_size=10240) < delta
             nz_idx = torch.nonzero(mask)
 
             for j in range(len(fs)):
@@ -90,7 +90,7 @@ class ProbcoverInit(BaseInit):
                 count += match.all()
 
             nz_idx[:, 0] += i  # add batch offset
-            edge_list.append(nz_idx)
+            edge_list.append(nz_idx.cpu())
 
         self.edge_list = torch.cat(edge_list)
         return count.item() / num_samples

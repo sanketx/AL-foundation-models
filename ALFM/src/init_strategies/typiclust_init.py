@@ -33,8 +33,11 @@ class TypiclustInit(BaseInit):
 
     def _typical_vec_id(self, features: NDArray[np.float32], knn: int) -> int:
         index = faiss.IndexFlatL2(features.shape[1])
-        index.add(features)
-        distances = index.search(features, knn + 1)[0].mean(axis=1)
+        res = faiss.StandardGpuResources()
+        gpu_index = faiss.index_cpu_to_gpu(res, 0, index)
+
+        gpu_index.add(features)
+        distances = gpu_index.search(features, knn + 1)[0].mean(axis=1)
         return distances.argmin()
 
     def _select_points(
@@ -62,6 +65,8 @@ class TypiclustInit(BaseInit):
             idx = cluster_df.cluster_id.values[i % num_clusters]
             indices = torch.nonzero(clust_labels == idx).flatten()
             vectors = features[indices]
+
+            print(i, len(vectors))
 
             knn = min(self.knn, len(indices) // 2)
             vec_id = self._typical_vec_id(vectors, knn)

@@ -2,6 +2,7 @@
 
 import logging
 from typing import Any
+from typing import Dict
 
 import numpy as np
 import torch
@@ -33,6 +34,9 @@ class Dropout(BaseQuery):
         thresh = self.num_iter // 2
         mismatch = (y_star != samples).sum(dim=0)
 
+        counts = torch.bincount(mismatch) / len(mismatch)
+        self.meta_data = {x: counts[x].item() for x in range(self.num_iter + 1)}
+
         while (mismatch > thresh).sum() < 25 * num_samples and thresh > 0:
             thresh = thresh - 1
 
@@ -52,6 +56,9 @@ class Dropout(BaseQuery):
         idx = np.random.choice(len(remaining), num_samples, replace=False)
         return remaining[idx]
 
+    def meta_dict(self):
+        return {f"frac_{x}": None for x in range(self.num_iter + 1)}
+
     def query(self, num_samples: int) -> NDArray[np.bool_]:
         """Select a new set of datapoints to be labeled.
 
@@ -61,6 +68,7 @@ class Dropout(BaseQuery):
         Returns:
             NDArray[np.bool_]: A boolean mask for the selected samples.
         """
+        self.meta_data = self.meta_dict()
         unlabeled_indices = np.flatnonzero(~self.labeled_pool)
 
         if num_samples > len(unlabeled_indices):
@@ -86,4 +94,4 @@ class Dropout(BaseQuery):
 
         mask = np.zeros(len(self.features), dtype=bool)
         mask[unlabeled_indices[candidates[selected]]] = True
-        return mask
+        return mask  # , self.meta_data
