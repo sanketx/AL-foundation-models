@@ -61,10 +61,14 @@ You can then use `python -m ALFM.feature_extraction dataset=your_custom_dataset.
 ## Citation
 If you find this code useful, please cite our paper
 ```
-@misc{ALFM,
-  title={Revisiting active learning queries in the era of Foundation Models},
-  author={... et al.},
-  journal={under review NeurIPS 2023},
-  year={2023}
+@article{
+gupte2024revisiting,
+title={Revisiting Active Learning in the Era of Vision Foundation Models},
+author={Sanket Rajan Gupte and Josiah Aklilu and Jeffrey J Nirschl and Serena Yeung-Levy},
+journal={Transactions on Machine Learning Research},
+issn={2835-8856},
+year={2024},
+url={https://openreview.net/forum?id=u8K83M9mbG},
+note={}
 }
 ``` 
