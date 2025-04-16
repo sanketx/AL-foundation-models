@@ -50,8 +50,11 @@ class Typiclust(BaseQuery):
 
     def _typical_vec_id(self, features: NDArray[np.float32], knn: int) -> int:
         index = faiss.IndexFlatL2(features.shape[1])
-        index.add(features)
-        distances = index.search(features, knn + 1)[0].mean(axis=1)
+        res = faiss.StandardGpuResources()
+        gpu_index = faiss.index_cpu_to_gpu(res, 0, index)
+
+        gpu_index.add(features)
+        distances = gpu_index.search(features, knn + 1)[0].mean(axis=1)
         return distances.argmin()
 
     def _select_points(

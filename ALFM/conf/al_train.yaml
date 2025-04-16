@@ -5,6 +5,7 @@ defaults:
   - model: dino_vit_g14
   - dataset: cifar100
   - classifier: linear_classifier
+  # - hydra/launcher: joblib
   - hydra/hydra_logging: rich_logger
   - hydra/job_logging: rich_logger
 
@@ -72,7 +73,7 @@ trainer:
   _target_: pytorch_lightning.Trainer
   devices: 1
   logger: false
-  default_root_dir: /tmp/${oc.env:USER}/lightning
+  default_root_dir: /tmp/${oc.env:USER}/checkpoints
   enable_model_summary: false
 
   callbacks:
@@ -104,7 +105,10 @@ hydra:
         bald,
         powerbald,
         badge,
-        alfamix
+        alfamix,
+        typiclust,
+        probcover,
+        dropout
       model:
         openclip_vit_B16,
         openclip_vit_L14,
@@ -116,33 +120,18 @@ hydra:
         dino_vit_L14,
         dino_vit_g14
       dataset: 
+        cifar100,
+        food101,
+        imagenet100,
+        domainnetreal,
         aircraft,
         cars,
-        cifar10,
-        cifar100,
-        flowers,
-        food101,
-        dtd,
-        pets,
-        places365,
-        svhn,
-        imagenet100,
-        amyloid_beta_bal,
-        amyloid_beta_unbal,
-        blood_smear,
-        cell_cycle,
-        colon_polyps,
-        colorectal_histology,
-        diabetic_retinopathy,
-        ham10000,
-        heart_failure,
-        iicbu_hela,
-        iicbu_lymphoma,
-        malaria,
-        pap_smear_2018,
-        pap_smear_2019,
-        patch_camelyon,
-        pollen
+        pets
+        
+        # blood_smear,
+        # diabetic_retinopathy,
+        # ham10000,
+        # iicbu_hela
 
   # temporarily disable logging
   run:

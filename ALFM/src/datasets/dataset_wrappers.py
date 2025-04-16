@@ -4,21 +4,21 @@
 import os
 from typing import Optional
 
-from bcv.datasets.biology.icpr2020_pollen import ICPR2020Pollen
-from bcv.datasets.cell_biology.bbbc.bbbc048_cell_cycle import BBBC048CellCycleDataset
-from bcv.datasets.cell_biology.iicbu2008_hela import IICBU2008HeLa
-from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataSet
-from bcv.datasets.cytology.blood_smear.malaria import MalariaDataset
-from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
-from bcv.datasets.cytology.pap_smear.plissiti_et_al_2018 import Plissiti2018Dataset
-from bcv.datasets.dermoscopy.ham10000 import HAM10000Dataset
-from bcv.datasets.fundoscopy.diabetic_retinopathy import DiabeticRetinopathyDataset
-from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
-from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
-from bcv.datasets.pathology.iicbu2008_lymphoma import IICBU2008Lymphoma
-from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
-from bcv.datasets.pathology.mhist import MHist
-from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
+# from bcv.datasets.biology.icpr2020_pollen import ICPR2020Pollen
+# from bcv.datasets.cell_biology.bbbc.bbbc048_cell_cycle import BBBC048CellCycleDataset
+# from bcv.datasets.cell_biology.iicbu2008_hela import IICBU2008HeLa
+# from bcv.datasets.cytology.blood_smear.acevedo_et_al_2020 import BloodSmearDataSet
+# from bcv.datasets.cytology.blood_smear.malaria import MalariaDataset
+# from bcv.datasets.cytology.pap_smear.hussain_et_al_2019 import Hussain2019Dataset
+# from bcv.datasets.cytology.pap_smear.plissiti_et_al_2018 import Plissiti2018Dataset
+# from bcv.datasets.dermoscopy.ham10000 import HAM10000Dataset
+# from bcv.datasets.fundoscopy.diabetic_retinopathy import DiabeticRetinopathyDataset
+# from bcv.datasets.pathology.amyloid_beta.tang_et_al_2019 import AmyloidBeta2019Dataset
+# from bcv.datasets.pathology.idr0042_upenn_heart import UPennHeart2018Dataset
+# from bcv.datasets.pathology.iicbu2008_lymphoma import IICBU2008Lymphoma
+# from bcv.datasets.pathology.kather_et_al_2016 import ColorectalHistologyDataset
+# from bcv.datasets.pathology.mhist import MHist
+# from bcv.datasets.pathology.patch_camelyon import PatchCamelyonDataSet
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import DTD

@@ -47,8 +47,9 @@ class Coreset(BaseQuery):
             )
 
         p_dist = torch_pd(labeled_vectors, unlabeled_vectors)
-        min_dist = p_dist.min(dim=0)[0]  # distance of UL points to the nearest center
+        p_dist = p_dist.clip(min=0).nan_to_num()  # avoid numerical errors
 
+        min_dist = p_dist.min(dim=0)[0]  # distance of UL points to the nearest center
         new_batch = []
 
         for _ in track(range(num_samples), description="[green]Core-Set query"):
@@ -59,6 +60,8 @@ class Coreset(BaseQuery):
                 unlabeled_vectors[next_center].view(1, -1),
                 unlabeled_vectors,
             )
+
+            new_dist = new_dist.clip(min=0).nan_to_num()  # avoid numerical errors
             min_dist = torch.minimum(min_dist, new_dist.ravel())
 
         mask = np.zeros(len(vectors), dtype=bool)

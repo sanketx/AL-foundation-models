@@ -44,7 +44,7 @@ def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.i
     # pairwise_distances in FAISS returns the squared L2 distance
     centroid_vector = vectors[idx].view(1, -1)
     sq_dist = torch_pd(vectors, centroid_vector).ravel() ** 2
-    sq_dist[centroids] = 0  # avoid numerical errors
+    sq_dist = sq_dist.clip(min=0).nan_to_num()  # avoid numerical errors
 
     # Choose the remaining centroids
     for _ in track(range(1, k), description="[green]K-Means++ init"):
@@ -55,7 +55,7 @@ def kmeans_plus_plus_init(features: NDArray[np.float32], k: int) -> NDArray[np.i
         # update the squared distances
         centroid_vector = vectors[idx].view(1, -1)
         new_dist = torch_pd(vectors, centroid_vector).ravel() ** 2
-        new_dist[centroids] = 0  # avoid numerical errors
+        new_dist = new_dist.clip(min=0).nan_to_num()  # avoid numerical errors
 
         # update the minimum squared distance
         sq_dist = torch.minimum(sq_dist, new_dist)

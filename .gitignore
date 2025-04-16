@@ -6,6 +6,7 @@ checkpoints
 ALFM/cache/*
 ALFM/checkpoints/*
 ALFM/logs/*
+ALFM/supp_logs/*
 
 !ALFM/cache/.gitkeep
 !ALFM/checkpoints/.gitkeep

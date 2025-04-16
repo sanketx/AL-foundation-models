@@ -1,5 +1,6 @@
 """Script to run the active learning loop."""
 
+import logging
 import os
 
 import h5py
@@ -36,6 +37,9 @@ def main(cfg: DictConfig) -> None:
     feature_dir = env.get("FEATURE_CACHE_DIR", None)
     log_dir = env.get("LOG_DIR", None)
 
+    # if cfg.dataset.name in ["cifar100", "food101", "imagenet100", "domainnetreal"]:
+    #     log_dir = "/sdf/home/s/sanketg/projects/AL-foundation-models/ALFM/supp_logs"
+
     assert (
         feature_dir is not None
     ), "Please set the 'FEATURE_CACHE_DIR' variable in your .env file"
@@ -43,7 +47,11 @@ def main(cfg: DictConfig) -> None:
     assert log_dir is not None, "Please set the 'LOG_DIR' variable in your .env file"
 
     vector_file = get_vector_file(cfg.dataset.name, cfg.model.name, feature_dir)
-    al_train(vector_file, log_dir, cfg)
+
+    try:
+        al_train(vector_file, log_dir, cfg)
+    except Exception as err:
+        logging.error(f"Error: {err}")
 
 
 if __name__ == "__main__":

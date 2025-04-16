@@ -76,6 +76,7 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
         init_sampler=init_sampler,
         **cfg.query_strategy.params,
     )
+    # meta_data = query_sampler.meta_dict()
 
     # label propagation
     ssl = LabelPropagation(**cfg.ssl)
@@ -87,7 +88,7 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
         model = ClassifierWrapper(cfg)
         model.fit(train_x, train_y, labeled_pool, ssl_y)
 
-        scores = model.eval(test_x, test_y)
+        scores = model.eval(test_x, test_y)  # | meta_data
         exp_logger.log_scores(scores, i, len(iterations), labeled_pool.sum())
 
         if i == len(iterations):
@@ -97,4 +98,6 @@ def al_train(vector_file: str, log_dir: str, cfg: DictConfig) -> None:
         budget = (iterations[i] - iterations[i - 1]) * num_classes * cfg.budget.step
 
         query_sampler.update_state(iteration, labeled_pool, model)
-        labeled_pool |= query_sampler.query(budget)  # update labeled pool
+        indices = query_sampler.query(budget)
+        # indices, meta_data = query_sampler.query(budget)
+        labeled_pool |= indices  # update labeled pool
